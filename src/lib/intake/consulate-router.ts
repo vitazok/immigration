@@ -1,50 +1,49 @@
-// Determines the correct consulate based on applicant's nationality, destination, and residence.
+// Determines the correct consulate and visa type based on applicant inputs.
 // Rules sourced from Schengen Visa Code Article 5.
+
+import { getConsulate } from '@/lib/knowledge/queries';
+import type { VisaRecommendation } from '@/lib/types/application';
 
 export interface ConsulateRouterInput {
   nationality: string;       // ISO 3166-1 alpha-3
-  mainDestination: string;   // ISO 3166-1 alpha-3
-  residenceCountry: string;  // ISO 3166-1 alpha-3 (where they currently live)
-}
-
-export interface ConsulateRouterResult {
-  consulateId: string;
-  explanation: string;
+  destination: string;       // ISO 3166-1 alpha-3
+  purpose: string;           // tourism, visiting_family, business, etc.
 }
 
 // MVP routing table — expand as more consulates are added
-const ROUTING_TABLE: Record<string, Record<string, string>> = {
-  // Format: nationality -> destination -> consulateId
+const ROUTING_TABLE: Record<string, Record<string, { consulateId: string; visaType: string; visaName: string }>> = {
   IND: {
-    FRA: 'FR_NEW_DELHI',
+    FRA: {
+      consulateId: 'FR_NEW_DELHI',
+      visaType: 'schengen_c',
+      visaName: 'Schengen Type C Tourist Visa',
+    },
   },
 };
 
-export function routeToConsulate(input: ConsulateRouterInput): ConsulateRouterResult {
-  const { nationality, mainDestination, residenceCountry } = input;
+export function routeToConsulate(input: ConsulateRouterInput): VisaRecommendation {
+  const { nationality, destination } = input;
 
-  // Try exact match first
   const byNationality = ROUTING_TABLE[nationality];
-  if (byNationality) {
-    const consulateId = byNationality[mainDestination];
-    if (consulateId) {
-      return {
-        consulateId,
-        explanation: `${nationality} nationals applying for ${mainDestination} visa should use ${consulateId}.`,
-      };
-    }
+  const route = byNationality?.[destination];
+
+  if (!route) {
+    throw new Error(
+      `Unsupported combination: nationality=${nationality}, destination=${destination}. ` +
+      `Currently only India → France is supported.`
+    );
   }
 
-  // Fallback: if applicant resides in India, try India-based consulates
-  if (residenceCountry === 'IND' && mainDestination === 'FRA') {
-    return {
-      consulateId: 'FR_NEW_DELHI',
-      explanation: 'India-based applicants for France visas apply through the Embassy of France, New Delhi.',
-    };
-  }
+  const consulate = getConsulate(route.consulateId);
 
-  throw new Error(
-    `Unsupported combination: nationality=${nationality}, destination=${mainDestination}, residence=${residenceCountry}. ` +
-    `Currently only India → France is supported.`
-  );
+  return {
+    consulateId: route.consulateId,
+    visaType: route.visaType,
+    visaName: route.visaName,
+    consulateName: `Embassy of ${consulate.country}, ${consulate.city}`,
+    vfsProvider: consulate.vfsProvider,
+    processingDays: consulate.processingTimeDays,
+    refusalRate: consulate.refusalRateEstimate,
+    requiredDocCount: consulate.requiredDocuments.filter((d: { required: boolean }) => d.required).length,
+  };
 }

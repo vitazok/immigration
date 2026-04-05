@@ -21,7 +21,8 @@
 | PDF form | Real AcroForm field IDs extracted from `CS_14076-05_EN_05.pdf` |
 | ZDR header | Removed incorrect beta header — ZDR configured at Anthropic account level |
 | pgvector | Not needed for MVP — JSON in-memory knowledge base |
-| Models | Sonnet `claude-sonnet-4-6` for generation · Haiku `claude-haiku-4-5-20251001` for chat |
+| LLM provider | OpenRouter (free tier) via `openai` SDK — not Anthropic directly |
+| Models | Smart `qwen/qwen3.6-plus:free` for generation · Fast `openai/gpt-oss-20b:free` for chat |
 
 ---
 
@@ -200,7 +201,9 @@ applicationNumber, applicationNumberPart1, applicationNumberPart2, modificationD
 - [x] `tests/unit/mrz.test.ts`
 - [x] `tests/unit/form-mapper.test.ts`
 - [x] `tests/unit/quality-rules.test.ts`
+- [x] `tests/unit/consulate-router.test.ts` (new — Session 5)
 - [x] `tests/integration/pipeline.test.ts`
+- [x] `tests/integration/application-flow.test.ts` (new — Session 5)
 - [x] `scripts/seed-knowledge-base.ts`
 - [x] `scripts/extract-pdf-fields.ts`
 
@@ -255,6 +258,61 @@ applicationNumber, applicationNumberPart1, applicationNumberPart2, modificationD
 
 **Current blocker for full local testing:** No PostgreSQL database. The intake wizard calls `/api/intake/start` which needs Prisma/DB. Options: set up local Postgres, or add mock/in-memory mode.
 
+### Session 3 — 2026-04-05
+**Agent:** claude-opus-4-6
+**Goal:** Set up Railway PostgreSQL and switch LLM provider to OpenRouter
+
+**Completed this session:**
+- Connected Railway PostgreSQL — `npx prisma db push` created all 6 tables
+- Created `.env` for Prisma CLI (reads `.env` not `.env.local`)
+- Ran `npm run seed` — validated FR_NEW_DELHI consulate data
+- Switched LLM provider from Anthropic SDK to OpenRouter via `openai` SDK
+  - Rewrote `src/lib/llm/client.ts` — OpenAI SDK pointed at `openrouter.ai/api/v1`
+  - Updated `src/lib/env.ts` — `OPENROUTER_API_KEY` replaces `ANTHROPIC_API_KEY`
+  - Updated stream consumers in `cover-letter.ts` and `chat/message/route.ts` (simplified — no more Anthropic-specific event types)
+  - Removed unused `anthropic` import from `session.ts`
+  - Updated `.env.local`, `.env.example`, `CLAUDE.md`, `TODO.md`
+- Smart model: `qwen/qwen3.6-plus:free` · Fast model: `openai/gpt-oss-20b:free`
+- All 47 tests pass, typecheck clean
+
+- OpenRouter API key set and verified — both models respond correctly
+- Tested structured JSON output (Qwen3.6 Plus) and chat (gpt-oss-20b) — both work
+
+### Session 4 — 2026-04-05
+**Agent:** claude-opus-4-6
+**Goal:** Redesign user flow — replace rigid intake wizard with AI-first onboarding + application dashboard
+
+**Completed this session:**
+- **New flow:** Landing page (3-dropdown visa finder) → Recommendation card → Application dashboard (document checklist + smart form + quality check)
+- **Data layer:** Added `Application` model to Prisma, expanded consulate router to return `VisaRecommendation`, created 3 new API routes (`/api/application/create`, `/api/application/[id]`, `/api/application/[id]/form`)
+- **Landing page:** Replaced old hero + "Get started" with `VisaFinder` component (nationality/destination/purpose dropdowns) + `RecommendationCard` (visa type, processing time, refusal rate, doc count)
+- **Application dashboard:** `ApplicationDashboard` at `/application/[id]` with:
+  - `ProgressBar` — overall completion (docs + form fields)
+  - `DocumentChecklist` — per-document upload from consulate requirements
+  - `DocumentUploadModal` — focused single-document upload
+  - `FormSections` — 6 collapsible sections (Personal, Passport, Travel, Employment, Travel History, Ties) with 24 fields, inline editing, confidence indicators
+  - Quality check link
+- **Auth:** Anonymous until upload/save, then redirect to sign-in
+- **Removed:** Old intake pages, wizard components, intake API routes, session/questions logic
+- All 47 tests pass, typecheck clean
+
+### Session 5 — 2026-04-05
+**Agent:** claude-opus-4-6
+**Goal:** Complete Phase 6 — tests, docs, verification
+
+**Completed this session:**
+- Added 18 new tests across 2 new test files:
+  - `tests/unit/consulate-router.test.ts` — 6 tests: routing IND→FRA, recommendation metadata, doc count, all purposes, error cases
+  - `tests/integration/application-flow.test.ts` — 12 tests: full new flow (onboarding → routing → doc checklist → form mapping → quality check → progress calculation) for all 3 profiles
+- Updated `CLAUDE.md` — new user flow section, updated project structure tree, updated API routes section with auth requirements, updated testing section, fixed stale Claude Haiku reference
+- Updated `TODO.md` — session log, updated "What the Next Agent Needs to Know"
+- **All 65 tests pass** (47 original + 18 new), typecheck clean, `next build` succeeds
+
+**Verification:**
+- `npx tsc --noEmit` — 0 errors
+- `npx next build` — builds successfully
+- `npx vitest --run` — 65/65 tests pass
+
 ---
 
 ## What the Next Agent Needs to Know
@@ -263,46 +321,47 @@ applicationNumber, applicationNumberPart1, applicationNumberPart2, modificationD
 ```bash
 npm install          # Dependencies are already installed but run if node_modules is missing
 npm run dev          # Starts at http://localhost:3000/en
-npm test             # 47 tests, all passing
+npm test             # 65 tests, all passing
 npx tsc --noEmit     # 0 errors
-npx next build       # Succeeds
+npx next build       # Production build succeeds
 ```
 
 ### Current state
-- **All 11 build phases complete** — foundation, database schema, types, LLM client, knowledge base, core libraries, API routes, i18n, pages, UI components, tests
-- **Build passes**, **typecheck passes**, **47 tests pass**
-- **Dev server works** — landing page, auth (Clerk), all page routes render
-- **API routes work** — return proper JSON (but DB-dependent ones fail without Postgres)
+- **User flow:** Landing (3-dropdown visa finder → recommendation card) → Application dashboard (document checklist + 6-section form + progress bar) → Quality check
+- **Build passes**, **typecheck passes**, **65 tests pass** (6 test files)
+- **Railway PostgreSQL connected** — 7 tables (Applicant, Trip, Application, DocumentUpload, FormState, IntakeSession, ChatMessage)
+- **OpenRouter LLM connected** — Smart: `qwen/qwen3.6-plus:free` · Fast: `openai/gpt-oss-20b:free`
+- **Clerk auth configured** — anonymous start, sign-in required on upload/form save
+- **Session 4 redesign changes are uncommitted** — all working but need `git add` + `git commit`
 
-### What still needs to happen for full local testing
-1. **PostgreSQL** — set up local or Railway instance, put `DATABASE_URL` in `.env.local`, run `npx prisma db push`
-2. **Seed data** — run `npm run seed` to load consulate knowledge base into DB
-
-### What still needs to happen before production
-1. Fill remaining API keys in `.env.local` (Anthropic, Google Vision, R2)
-2. Copy Schengen form PDF to `public/forms/schengen-form.pdf`
-3. Review Hindi translations with native speaker
-4. Replace hardcoded English strings on landing/dashboard pages with `t()` calls
-5. Test full end-to-end flow with real API keys
+### What still needs to happen
+1. **Commit Session 4+5 changes** — significant redesign is uncommitted (see `git status`)
+2. Fill remaining API keys in `.env.local` (Google Vision, R2)
+3. Test document upload + extraction end-to-end (needs Google Vision + R2)
+4. Connect form save → form-mapper → PDF generation pipeline
+5. Review Hindi translations with native speaker
+6. i18n: replace remaining hardcoded English strings with `t()` calls
+7. Evaluate free model quality — switch to paid OpenRouter models if output isn't good enough
 
 ### Key files
-- `CLAUDE.md` — Agent instructions and conventions
+- `CLAUDE.md` — Agent instructions and conventions (updated Session 5)
 - `visaagent-prd.md` — Full product spec
 - `TODO.md` — This file (build checklist + session log)
-- `.env.local` — Has Clerk keys set; all others are placeholders
+- `.env.local` — Has Clerk + OpenRouter + Railway keys set; Google Vision + R2 are placeholders
 - `.env.example` — Template for all required env vars
+- `prisma/schema.prisma` — 7 models including Application (added Session 4)
+- `src/lib/intake/consulate-router.ts` — Visa routing: (nationality, dest, purpose) → VisaRecommendation
+- `src/lib/types/application.ts` — VisaRecommendation, ApplicationSummary types
 
 ---
 
 ## Human Action Required (before going live)
 
 1. ~~**Clerk** — create app at clerk.com, copy publishable + secret keys~~ ✅ Done
-2. **API Keys** — fill in `.env.local` with real values (Anthropic, Google Cloud Vision, R2)
-3. **PDF field verification** — copy `CS_14076-05_EN_05.pdf` to `public/forms/schengen-form.pdf` so the form-fill pipeline can load it
-4. **Railway** — create a PostgreSQL instance, copy `DATABASE_URL` to `.env.local`
+2. ~~**Railway** — create PostgreSQL instance, copy `DATABASE_URL`, run `prisma db push`~~ ✅ Done
+3. ~~**PDF field verification** — `CS_14076-05_EN_05.pdf` copied to `public/forms/schengen-form.pdf`~~ ✅ Done
+4. ~~**OpenRouter** — get API key, set `OPENROUTER_API_KEY` in `.env.local`~~ ✅ Done
 5. **Cloudflare R2** — create bucket `visaagent-documents`, copy access keys
 6. **Google Cloud Vision** — enable Vision API, create service account, copy API key
-7. **Run** `npx prisma db push` to create database tables
-8. **Run** `npm run seed` to load consulate knowledge base
-9. **Hindi translations** — review `src/messages/hi/` with a native speaker before launch
-10. **Cover letter** — review AI-generated cover letter output against real immigration consultant feedback
+7. **Hindi translations** — review `src/messages/hi/` with a native speaker before launch
+8. **Cover letter** — review AI-generated cover letter output against real immigration consultant feedback

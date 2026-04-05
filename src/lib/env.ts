@@ -4,8 +4,8 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
-  // Anthropic
-  ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY is required'),
+  // OpenRouter (OpenAI-compatible API for free LLMs)
+  OPENROUTER_API_KEY: z.string().min(1, 'OPENROUTER_API_KEY is required'),
 
   // Google Cloud Vision
   GOOGLE_CLOUD_VISION_API_KEY: z.string().min(1, 'GOOGLE_CLOUD_VISION_API_KEY is required'),

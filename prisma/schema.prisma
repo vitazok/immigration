@@ -10,6 +10,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Application ──────────────────────────────────────────────────────────────
+
+model Application {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Routing inputs
+  nationality    String // ISO 3166-1 alpha-3
+  destination    String // ISO 3166-1 alpha-3
+  purpose        String // tourism, visiting_family, business, etc.
+
+  // Resolved by consulate router
+  consulateId    String
+  visaType       String  // e.g. "schengen_c"
+  visaName       String  // e.g. "Schengen Type C Tourist Visa"
+
+  // State
+  status         String  @default("draft") // draft | in_progress | ready_for_review | finalized
+
+  // Links
+  applicantId    String?
+  tripId         String?
+
+  applicant      Applicant? @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+
+  @@index([applicantId])
+  @@index([consulateId])
+}
+
 // ─── Applicant ────────────────────────────────────────────────────────────────
 
 model Applicant {
@@ -69,6 +99,7 @@ model Applicant {
   returnIntent      String?
 
   // Relations
+  applications   Application[]
   trips         Trip[]
   documents     DocumentUpload[]
   intakeSessions IntakeSession[]

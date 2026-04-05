@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { locales } from './i18n';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const intlMiddleware = createIntlMiddleware({
   locales,
@@ -9,11 +9,8 @@ const intlMiddleware = createIntlMiddleware({
   localePrefix: 'always',
 });
 
-// Routes that require authentication
+// Routes that require authentication (quality check needs complete data)
 const isProtectedRoute = createRouteMatcher([
-  '/:locale/intake(.*)',
-  '/:locale/documents(.*)',
-  '/:locale/form-review(.*)',
   '/:locale/quality-check(.*)',
   '/:locale/dashboard(.*)',
 ]);
@@ -33,7 +30,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals, static files, and API routes
-    '/((?!_next|api|trpc|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Skip Next.js internals and static files. API routes excluded — auth handled via getAuth() in route handlers.
+    '/((?!_next|api|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
   ],
 };

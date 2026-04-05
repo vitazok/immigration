@@ -30,10 +30,7 @@ export async function generateCoverLetter(
   // Collect full text while streaming
   let fullText = '';
   const collectingStream = (async function* () {
-    for await (const chunk of stream) {
-      const text = chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta'
-        ? chunk.delta.text
-        : '';
+    for await (const text of stream) {
       fullText += text;
       yield text;
     }

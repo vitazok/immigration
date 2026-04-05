@@ -4,3 +4,4 @@ export type { DocumentType, DocumentUpload, DocumentExtraction, ExtractedField, 
 export type { ConsulateRequirement, DocumentRequirement, LocalizedString, FaqEntry } from './consulate';
 export type { FormFieldMapping, DataSource } from './form-mapping';
 export type { QualityCheckResult, QualityIssue } from './quality';
+export type { VisaRecommendation, ApplicationStatus, ApplicationSummary } from './application';

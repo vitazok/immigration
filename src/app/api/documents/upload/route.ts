@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { uploadDocument } from '@/lib/documents/upload';
+import { getClerkUserId } from '@/lib/auth';
 import type { DocumentType } from '@/lib/types/documents';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -14,7 +14,7 @@ const DOCUMENT_TYPES: DocumentType[] = [
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const userId = await getClerkUserId(req);
     if (!userId) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },

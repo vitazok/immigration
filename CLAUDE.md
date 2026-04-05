@@ -14,7 +14,7 @@ Repo: github.com/vitazok/immigration (monorepo)
 - **Frontend:** Next.js 14+ (App Router) + TypeScript + Tailwind CSS
 - **Backend:** API routes in Next.js route handlers (Fastify standalone server is NOT needed for MVP — use Next.js API routes)
 - **Database:** PostgreSQL via Prisma ORM (Railway managed)
-- **LLM:** Anthropic Claude API — Sonnet for generation/analysis, Haiku for chat assistant
+- **LLM:** OpenRouter (OpenAI-compatible API) — free models via `openai` SDK. Smart model (DeepSeek) for generation/analysis, fast model (Llama) for chat assistant. Models configurable in `src/lib/llm/client.ts`.
 - **Auth:** Clerk (use `@clerk/nextjs`)
 - **i18n:** next-intl with JSON translation files
 - **PDF:** pdf-lib for AcroForm filling and generation
@@ -37,63 +37,84 @@ npm run test:integration # Integration tests
 npm run seed             # Seed knowledge base from data/consulates/
 ```
 
-## Project Structure
+## User Flow
 
-Follow this structure exactly. See PRD Section 6 for the full tree.
+1. **Landing + Onboarding** (`/[locale]`) — 3 dropdowns (nationality, destination, purpose) → visa recommendation card → "Start application"
+2. **Application Dashboard** (`/[locale]/application/[id]`) — Document checklist + 6-section form (37 fields) with inline editing, confidence indicators, progress bar
+3. **Quality Check** (`/[locale]/quality-check`) — AI-powered blockers/warnings/recommendations → finalize PDF + cover letter
+
+Auth gate: anonymous until upload or form save → then Clerk sign-in.
+
+## Project Structure
 
 ```
 /
 ├── CLAUDE.md                          # This file
 ├── visaagent-prd.md                   # Full PRD — READ THIS FIRST
+├── TODO.md                            # Build log, session history, next steps
 ├── package.json
 ├── .env.example
 ├── data/
 │   └── consulates/
-│       └── FR_NEW_DELHI.json          # MVP consulate seed data (PRD Section 13)
+│       └── FR_NEW_DELHI.json          # MVP consulate seed data
 ├── src/
 │   ├── app/                           # Next.js App Router
+│   │   ├── layout.tsx                 # Root layout (required by App Router)
 │   │   ├── [locale]/                  # i18n dynamic segment (next-intl)
 │   │   │   ├── layout.tsx
-│   │   │   ├── page.tsx
-│   │   │   ├── intake/
-│   │   │   ├── documents/
-│   │   │   ├── form-review/
+│   │   │   ├── page.tsx               # Landing + onboarding (visa finder)
+│   │   │   ├── application/[id]/      # Application dashboard (checklist + form)
+│   │   │   │   └── page.tsx
 │   │   │   ├── quality-check/
-│   │   │   └── dashboard/
+│   │   │   ├── dashboard/
+│   │   │   ├── sign-in/[[...sign-in]]/
+│   │   │   └── sign-up/[[...sign-up]]/
 │   │   └── api/                       # API route handlers
-│   │       ├── intake/
+│   │       ├── application/           # POST create, GET [id], PUT [id]/form
 │   │       ├── documents/
 │   │       ├── assembly/
 │   │       ├── quality/
-│   │       └── chat/
+│   │       ├── chat/
+│   │       ├── knowledge/
+│   │       └── stripe/
 │   ├── lib/
-│   │   ├── intake/                    # Layer 1: Interview logic
+│   │   ├── auth.ts                    # getClerkUserId() — returns null for anon
+│   │   ├── intake/                    # Consulate routing only (no interview logic)
+│   │   │   └── consulate-router.ts    # (nationality, dest, purpose) → VisaRecommendation
 │   │   ├── documents/                 # Layer 2: OCR & extraction
 │   │   ├── knowledge/                 # Layer 3: Knowledge base queries
 │   │   ├── assembly/                  # Layer 4: Form filling & doc gen
 │   │   ├── quality/                   # Layer 5: Validation & checks
-│   │   ├── llm/                       # Claude API client
-│   │   │   ├── client.ts              # Anthropic SDK wrapper
+│   │   ├── llm/                       # LLM client (OpenRouter via openai SDK)
+│   │   │   ├── client.ts              # OpenRouter config, model IDs
 │   │   │   └── prompts/               # Prompt templates as functions
 │   │   ├── db/                        # Prisma client & helpers
-│   │   └── types/                     # Shared TypeScript interfaces (PRD Section 7)
+│   │   └── types/                     # Shared TypeScript interfaces
+│   │       ├── applicant.ts
+│   │       ├── application.ts         # VisaRecommendation, ApplicationSummary
+│   │       ├── trip.ts
+│   │       ├── documents.ts
+│   │       ├── consulate.ts
+│   │       ├── form-mapping.ts
+│   │       ├── quality.ts
+│   │       └── index.ts
 │   ├── components/
-│   │   ├── ui/                        # Reusable primitives
-│   │   ├── intake/
-│   │   ├── documents/
-│   │   ├── form-review/
+│   │   ├── ui/                        # Reusable primitives (button, input, card, etc.)
+│   │   ├── onboarding/                # VisaFinder, RecommendationCard
+│   │   ├── application/               # Dashboard, DocumentChecklist, FormSections, etc.
+│   │   ├── documents/                 # UploadZone, DocumentCard, ExtractionReview
+│   │   ├── form-review/               # FieldRow, ConfidenceBadge, PdfPreview
 │   │   ├── help/                      # Tooltips, FAQ drawer, chat widget
-│   │   └── layout/
+│   │   └── layout/                    # Header, Footer, LocaleSwitcher
 │   └── messages/
 │       ├── en/
-│       ├── zh-CN/
 │       └── hi/
 ├── prisma/
-│   └── schema.prisma
+│   └── schema.prisma                  # 7 models: Application, Applicant, Trip, etc.
 ├── tests/
-│   ├── fixtures/                      # Synthetic test data (PRD Section 15)
-│   ├── unit/
-│   ├── integration/
+│   ├── fixtures/                      # Synthetic test data (3 profiles, MRZ samples, bank stmts)
+│   ├── unit/                          # mrz, form-mapper, quality-rules, consulate-router
+│   ├── integration/                   # pipeline (MRZ→form→quality), application-flow (new)
 │   └── e2e/
 └── scripts/
     └── seed-knowledge-base.ts
@@ -152,7 +173,7 @@ The app must feel fast. Target users are on 4G mobile connections in India — e
 - Knowledge base JSON: load once at server start, cache in memory — never read from disk per request
 
 **Chat assistant:**
-- Use Claude Haiku (fastest model)
+- Use the fast model (currently `openai/gpt-oss-20b:free` via OpenRouter)
 - Stream responses token-by-token to the UI
 - Response must begin appearing within 1 second of user sending message
 - Keep conversation context minimal — send only current application state + last 5 messages, not full history
@@ -185,13 +206,17 @@ Import from `@/lib/types/` — never redefine these types elsewhere.
 
 Full route contracts with request/response shapes are in PRD Section 9. Key endpoints:
 
-- `POST /api/intake/start` — Begin intake session
-- `POST /api/intake/answer` — Submit answer, get next question
+**Application (new flow):**
+- `POST /api/application/create` — Create application from onboarding (nationality + destination + purpose). No auth required. Returns `{ applicationId, tripId, recommendation }`.
+- `GET /api/application/[id]` — Get full application state (docs, form fields, progress, applicant, trip, recommendation, requiredDocuments). No auth required.
+- `PUT /api/application/[id]/form` — Save form field values (partial updates). **Requires auth.** Fields prefixed `applicant.*` update Applicant, `trip.*` update Trip.
+
+**Documents & Assembly:**
 - `POST /api/documents/upload` — Upload document for extraction
 - `POST /api/assembly/generate-form` — Generate filled PDF
 - `POST /api/assembly/generate-cover-letter` — Generate cover letter
 - `POST /api/quality/check` — Run quality checks
-- `POST /api/chat/message` — AI chat assistant (separate from intake, uses Haiku)
+- `POST /api/chat/message` — AI chat assistant (uses fast model)
 
 ## Form Filling Pipeline
 
@@ -224,13 +249,15 @@ Update the mapping table with real field IDs.
 
 ## Testing
 
-- Test framework: Vitest
-- Unit tests for all utility functions, data transformations, MRZ parsing, field mapping
-- Integration tests for the full pipeline: intake answers → extraction results → form field values → PDF output
-- All tests use synthetic fixtures from `tests/fixtures/` (PRD Section 15 has starter data)
-- Create 5+ MRZ string variants for passport parsing tests
-- Create 3 complete applicant profiles: strong, first-time, and risky (details in PRD Section 15)
-- Mock bank statement data for SBI, HDFC, ICICI including one below-threshold to test warnings
+- Test framework: Vitest — `npm test` runs all tests
+- **65 tests across 6 files** (as of Session 5):
+  - `tests/unit/mrz.test.ts` — 7 tests: MRZ parsing for 5 passport variants
+  - `tests/unit/form-mapper.test.ts` — 10 tests: applicant+trip → 37 PDF field mapping
+  - `tests/unit/quality-rules.test.ts` — 7 tests: rule-based quality checks
+  - `tests/unit/consulate-router.test.ts` — 6 tests: visa routing (new flow)
+  - `tests/integration/pipeline.test.ts` — 23 tests: MRZ → profile → form → quality (3 profiles)
+  - `tests/integration/application-flow.test.ts` — 12 tests: onboarding → routing → checklist → form → quality (new flow)
+- All tests use synthetic fixtures from `tests/fixtures/` — 3 applicant profiles (strong, first-time, risky), 5 MRZ samples, 3 bank statements (SBI, HDFC, ICICI)
 - Never use real personal data in tests
 
 ## Error Handling
@@ -246,18 +273,19 @@ Full error handling matrix is in PRD Section 16. Key rules:
 
 ## LLM Usage
 
-- Use `@anthropic-ai/sdk` for API calls
-- Always set `anthropic-beta: max-tokens-3-5-sonnet-2024-07-15` header for zero-data-retention
-- Claude Sonnet: intake interview, document analysis, cover letter generation, quality assessment
-- Claude Haiku: chat assistant (speed + cost priority)
+- Use `openai` SDK pointed at OpenRouter (`https://openrouter.ai/api/v1`)
+- Client configured in `src/lib/llm/client.ts` — single file for all LLM access
+- Smart model (`MODELS.sonnet`): intake interview, document analysis, cover letter, quality — currently `qwen/qwen3.6-plus:free`
+- Fast model (`MODELS.haiku`): chat assistant (speed priority) — currently `openai/gpt-oss-20b:free`
+- Browse free models at https://openrouter.ai/models?pricing=free — swap model IDs in `client.ts` anytime
 - All prompts stored in `src/lib/llm/prompts/` as exported functions that take typed parameters and return prompt strings
 - LLM outputs must be validated with zod schemas before use — never trust raw LLM output
-- Estimated cost target: < $3.00 per application (LLM + infrastructure combined)
+- Cost: $0 while using free-tier models. Free models have rate limits — switch to paid models for production traffic
 
 ## Security & Privacy
 
 - All data encrypted at rest (AES-256) and in transit (TLS 1.3)
-- LLM API calls use zero-data-retention — verify the Anthropic header is set
+- LLM API calls go through OpenRouter — review their data retention policy for production use
 - Document uploads auto-deleted 90 days after application completion
 - No passport images or financial data used for model training
 - Clerk handles auth — no custom session management
@@ -267,7 +295,7 @@ Full error handling matrix is in PRD Section 16. Key rules:
 ## Things NOT to Do
 
 - **Never** store raw passport images longer than the processing session
-- **Never** call LLM APIs without the zero-data-retention header
+- **Never** call LLM APIs outside of `src/lib/llm/client.ts` — all access goes through the shared OpenRouter client
 - **Never** flatten the PDF form until the user explicitly approves
 - **Never** auto-submit anything to VFS — explicitly out of scope
 - **Never** hardcode consulate-specific logic — always read from knowledge base JSON
