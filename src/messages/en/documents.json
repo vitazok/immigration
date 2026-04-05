@@ -1,0 +1,51 @@
+{
+  "title": "Upload your documents",
+  "subtitle": "We'll extract data automatically. Review and correct if needed.",
+  "upload": {
+    "title": "Upload {documentType}",
+    "instruction": "Take a clear photo or scan. JPG, PNG, or PDF. Max 10MB.",
+    "cameraHint": "Tap to use your camera",
+    "dropHint": "Drag and drop or click to upload",
+    "processing": "Extracting data…",
+    "success": "Data extracted successfully",
+    "lowConfidence": "Please review — some fields need your confirmation",
+    "failed": "Extraction failed. Please enter details manually."
+  },
+  "types": {
+    "passport": "Passport",
+    "bank_statement": "Bank Statement",
+    "employer_letter": "Employer Letter",
+    "cover_letter": "Cover Letter",
+    "travel_insurance": "Travel Insurance",
+    "flight_reservation": "Flight Reservation",
+    "hotel_reservation": "Hotel Reservation",
+    "photo": "Passport Photo",
+    "other": "Other Document"
+  },
+  "extraction": {
+    "title": "Extracted data",
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Please verify",
+      "low": "Needs confirmation"
+    },
+    "source": {
+      "mrz": "From passport MRZ",
+      "ocr": "From document scan",
+      "llm_extraction": "AI extracted",
+      "manual": "Entered manually"
+    },
+    "editHint": "Click to edit"
+  },
+  "status": {
+    "pending": "Waiting",
+    "processing": "Processing",
+    "completed": "Ready",
+    "failed": "Failed"
+  },
+  "checklist": {
+    "uploaded": "Uploaded",
+    "missing": "Missing",
+    "optional": "Optional"
+  }
+}

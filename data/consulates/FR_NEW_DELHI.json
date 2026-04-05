@@ -1,0 +1,287 @@
+{
+  "consulateId": "FR_NEW_DELHI",
+  "country": "France",
+  "city": "New Delhi",
+  "countryCode": "FRA",
+  "vfsProvider": "vfs_global",
+  "appointmentBookingUrl": "https://visa.vfsglobal.com/ind/en/fra/",
+  "requiredDocuments": [
+    {
+      "documentType": "passport",
+      "required": true,
+      "description": {
+        "en": "Original passport valid for at least 3 months beyond return date, with at least 2 blank pages. Plus photocopy of all pages showing stamps or visas.",
+        "hi": "मूल पासपोर्ट जो वापसी की तारीख से कम से कम 3 महीने तक वैध हो, कम से कम 2 खाली पृष्ठ हों। साथ ही सभी स्टाम्प/वीजा वाले पृष्ठों की फोटोकॉपी।"
+      },
+      "notes": {
+        "en": "Also include photocopies of all previously held passports if they contain Schengen visas.",
+        "hi": "यदि पूर्व पासपोर्ट में शेंगेन वीजा हो तो उनकी फोटोकॉपी भी शामिल करें।"
+      },
+      "templateUrl": null
+    },
+    {
+      "documentType": "photo",
+      "required": true,
+      "description": {
+        "en": "2 recent passport-size photos (35×45mm), white background, ICAO compliant, taken within the last 3 months.",
+        "hi": "2 हालिया पासपोर्ट साइज फोटो (35×45mm), सफेद पृष्ठभूमि, ICAO अनुपालन, पिछले 3 महीनों में ली गई।"
+      },
+      "notes": null,
+      "templateUrl": null
+    },
+    {
+      "documentType": "bank_statement",
+      "required": true,
+      "description": {
+        "en": "Bank statements for the last 3 months showing regular income and a minimum closing balance of INR 50,000 per week of intended stay. Must be stamped and signed by the bank.",
+        "hi": "पिछले 3 महीनों के बैंक स्टेटमेंट जो नियमित आय और ठहराव के प्रत्येक सप्ताह के लिए न्यूनतम INR 50,000 का क्लोजिंग बैलेंस दर्शाएं। बैंक द्वारा मुहर और हस्ताक्षरित होना आवश्यक है।"
+      },
+      "notes": {
+        "en": "SBI, HDFC, and ICICI statements are processed fastest. Joint accounts are acceptable if the applicant is named.",
+        "hi": "SBI, HDFC और ICICI के स्टेटमेंट सबसे तेजी से प्रोसेस होते हैं। संयुक्त खाते स्वीकार्य हैं यदि आवेदक का नाम हो।"
+      },
+      "templateUrl": null
+    },
+    {
+      "documentType": "employer_letter",
+      "required": true,
+      "description": {
+        "en": "Employment letter on company letterhead stating your position, salary, employment start date, and approved leave dates for the travel period. Must be signed by HR or a manager.",
+        "hi": "कंपनी लेटरहेड पर रोजगार पत्र जिसमें आपका पद, वेतन, रोजगार प्रारंभ तिथि और यात्रा अवधि के लिए स्वीकृत छुट्टी का उल्लेख हो। HR या प्रबंधक द्वारा हस्ताक्षरित।"
+      },
+      "notes": {
+        "en": "Self-employed applicants should provide a Certificate of Incorporation, last 2 years of ITR, and a self-declaration letter.",
+        "hi": "स्व-नियोजित आवेदकों को इनकॉर्पोरेशन प्रमाणपत्र, पिछले 2 वर्षों का ITR और स्व-घोषणा पत्र देना चाहिए।"
+      },
+      "templateUrl": null
+    },
+    {
+      "documentType": "cover_letter",
+      "required": true,
+      "description": {
+        "en": "Cover letter explaining the purpose of travel, detailed itinerary, ties to India, and clear intent to return before visa expiry.",
+        "hi": "यात्रा का उद्देश्य, विस्तृत यात्रा कार्यक्रम, भारत से संबंध और वीजा समाप्ति से पहले वापस लौटने की स्पष्ट मंशा का वर्णन करने वाला कवर लेटर।"
+      },
+      "notes": null,
+      "templateUrl": null
+    },
+    {
+      "documentType": "travel_insurance",
+      "required": true,
+      "description": {
+        "en": "Travel medical insurance with a minimum coverage of €30,000, valid in all Schengen states, covering the full travel period including emergency medical treatment, hospitalisation, and repatriation.",
+        "hi": "यात्रा चिकित्सा बीमा जो न्यूनतम €30,000 कवर करे, सभी शेंगेन देशों में वैध, पूरी यात्रा अवधि को कवर करे जिसमें आपातकालीन चिकित्सा उपचार, अस्पताल में भर्ती और प्रत्यावर्तन शामिल हो।"
+      },
+      "notes": {
+        "en": "Policy must explicitly state coverage in all Schengen states. Check that the policy number matches the dates on your application form exactly.",
+        "hi": "पॉलिसी में सभी शेंगेन देशों में कवरेज का स्पष्ट उल्लेख होना चाहिए। सुनिश्चित करें कि पॉलिसी नंबर आवेदन पत्र की तारीखों से बिल्कुल मेल खाता है।"
+      },
+      "templateUrl": null
+    },
+    {
+      "documentType": "flight_reservation",
+      "required": true,
+      "description": {
+        "en": "Round-trip flight reservation showing confirmed or tentative bookings. Dates must match your application form exactly.",
+        "hi": "राउंड-ट्रिप फ्लाइट आरक्षण जो पुष्ट या अस्थायी बुकिंग दर्शाए। तारीखें आवेदन पत्र से बिल्कुल मेल खानी चाहिए।"
+      },
+      "notes": {
+        "en": "A confirmed reservation (not a ticket) is acceptable. You do not need to purchase the ticket before visa approval.",
+        "hi": "पुष्ट आरक्षण (टिकट नहीं) स्वीकार्य है। वीजा मंजूरी से पहले टिकट खरीदना जरूरी नहीं है।"
+      },
+      "templateUrl": null
+    },
+    {
+      "documentType": "hotel_reservation",
+      "required": true,
+      "description": {
+        "en": "Hotel booking or proof of accommodation for the entire stay. Dates must match the application form.",
+        "hi": "पूरे ठहराव के लिए होटल बुकिंग या आवास का प्रमाण। तारीखें आवेदन पत्र से मेल खानी चाहिए।"
+      },
+      "notes": {
+        "en": "If staying with a host, provide a signed invitation letter and the host's address proof. Airbnb reservations are acceptable.",
+        "hi": "यदि किसी के घर ठहर रहे हैं, तो हस्ताक्षरित निमंत्रण पत्र और मेजबान का पता प्रमाण दें। Airbnb आरक्षण स्वीकार्य है।"
+      },
+      "templateUrl": null
+    }
+  ],
+  "financialThresholdMin": {
+    "amount": 50000,
+    "currency": "INR"
+  },
+  "bankStatementMonths": 3,
+  "photoSpec": {
+    "width": 35,
+    "height": 45,
+    "background": "white",
+    "standard": "ICAO"
+  },
+  "processingTimeDays": {
+    "min": 15,
+    "max": 30
+  },
+  "knownPractices": [
+    "The French consulate in New Delhi is strict about date consistency between the application form, flight bookings, and insurance.",
+    "Cover letters that explicitly address return intent perform significantly better for first-time travelers.",
+    "Bank statements from SBI, HDFC, and ICICI are processed fastest; smaller regional banks may cause delays.",
+    "Salary credit pattern is closely examined — irregular deposits or gaps raise flags.",
+    "Apply at least 8 weeks before travel during April–July peak season; otherwise 4–6 weeks is typically sufficient.",
+    "VFS centres are available across India in 14 cities; all applications forward to the New Delhi consulate for decision.",
+    "A refusal rate of ~16% is among the highest for Indian applicants to Schengen countries — quality of documentation matters."
+  ],
+  "lastVerifiedDate": "2026-03-15",
+  "refusalRateEstimate": 0.16,
+  "formFieldOverrides": {},
+  "tooltips": {
+    "applicantSurname": {
+      "en": "Enter your surname exactly as it appears in your passport MRZ (the two lines of letters at the bottom of the photo page). Use capital letters only.",
+      "hi": "अपना उपनाम ठीक वैसे ही दर्ज करें जैसा पासपोर्ट MRZ (फोटो पेज के नीचे दो लाइनें) में है। केवल बड़े अक्षरों में लिखें।"
+    },
+    "applicantFirstname": {
+      "en": "Enter all your given names as they appear in your passport. If you have a middle name, include it here. Use capital letters.",
+      "hi": "अपने सभी दिए गए नाम ठीक वैसे दर्ज करें जैसे पासपोर्ट में हैं। यदि मध्य नाम है तो यहाँ शामिल करें। बड़े अक्षरों में लिखें।"
+    },
+    "applicantDateOfBirth": {
+      "en": "Enter your date of birth in DD/MM/YYYY format, exactly as shown in your passport.",
+      "hi": "अपनी जन्म तिथि DD/MM/YYYY प्रारूप में दर्ज करें, ठीक वैसे जैसे पासपोर्ट में है।"
+    },
+    "applicantNationality": {
+      "en": "For most Indian applicants, this will be 'Indian'. If you hold dual nationality, enter your current nationality as shown on the passport you are using for this application.",
+      "hi": "अधिकांश भारतीय आवेदकों के लिए यह 'भारतीय' होगा। यदि आपके पास दोहरी नागरिकता है, तो इस आवेदन के लिए उपयोग किए जा रहे पासपोर्ट पर दर्शाई गई वर्तमान नागरिकता दर्ज करें।"
+    },
+    "travelDocNumber": {
+      "en": "Enter your passport number exactly as printed — it is typically 7–8 alphanumeric characters for Indian passports (e.g., A1234567).",
+      "hi": "अपना पासपोर्ट नंबर ठीक वैसे दर्ज करें जैसा मुद्रित है — भारतीय पासपोर्ट के लिए यह सामान्यतः 7–8 अक्षरांकीय वर्ण होते हैं (जैसे A1234567)।"
+    },
+    "travelDocValidUntil": {
+      "en": "Your passport must be valid for at least 3 months after your planned return date. If it expires sooner, you must renew it before applying.",
+      "hi": "आपका पासपोर्ट आपकी नियोजित वापसी तिथि के कम से कम 3 महीने बाद तक वैध होना चाहिए। यदि यह पहले समाप्त होता है, तो आवेदन करने से पहले इसे नवीनीकृत करना होगा।"
+    },
+    "dateOfArrival": {
+      "en": "Enter your intended first day in the Schengen area. This must match your flight reservation exactly. You can apply up to 6 months before this date.",
+      "hi": "शेंगेन क्षेत्र में अपने इरादे वाले पहले दिन को दर्ज करें। यह आपकी फ्लाइट बुकिंग से बिल्कुल मेल खाना चाहिए। आप इस तिथि से 6 महीने पहले तक आवेदन कर सकते हैं।"
+    },
+    "dateOfDeparture": {
+      "en": "Enter your intended last day in the Schengen area. This must match your return flight reservation exactly.",
+      "hi": "शेंगेन क्षेत्र में अपने इरादे वाले अंतिम दिन को दर्ज करें। यह आपकी वापसी फ्लाइट बुकिंग से बिल्कुल मेल खाना चाहिए।"
+    },
+    "purposeTOUR": {
+      "en": "Select 'Tourism' if your visit is primarily for leisure, sightseeing, or recreation. This is the most common category for Indian applicants visiting France.",
+      "hi": "'पर्यटन' चुनें यदि आपकी यात्रा मुख्य रूप से अवकाश, दर्शनीय स्थलों या मनोरंजन के लिए है। फ्रांस जाने वाले भारतीय आवेदकों के लिए यह सबसे सामान्य श्रेणी है।"
+    },
+    "host1Names": {
+      "en": "Enter the name of your hotel or accommodation host. For hotels, enter the hotel name. For private stays, enter the host's full name.",
+      "hi": "अपने होटल या आवास होस्ट का नाम दर्ज करें। होटल के लिए होटल का नाम दर्ज करें। निजी ठहराव के लिए होस्ट का पूरा नाम दर्ज करें।"
+    },
+    "fundingTypeM_CCR": {
+      "en": "Select 'Credit card' if you will be using a credit card to fund your stay. You may select multiple means of support.",
+      "hi": "यदि आप अपने ठहराव के लिए क्रेडिट कार्ड का उपयोग करेंगे तो 'क्रेडिट कार्ड' चुनें। आप समर्थन के कई साधन चुन सकते हैं।"
+    },
+    "hasFingerprintsTrue": {
+      "en": "Select 'Yes' if you have previously provided fingerprints for a Schengen visa application. If this is your first Schengen visa application, select 'No'.",
+      "hi": "यदि आपने पहले शेंगेन वीजा आवेदन के लिए उंगलियों के निशान दिए हैं तो 'हां' चुनें। यदि यह आपका पहला शेंगेन वीजा आवेदन है, तो 'नहीं' चुनें।"
+    },
+    "applicantOccupation": {
+      "en": "Enter your current occupation or job title as shown on your employer letter. Students should enter 'Student'. Retired applicants should enter 'Retired'.",
+      "hi": "अपना वर्तमान व्यवसाय या नौकरी का शीर्षक दर्ज करें जैसा रोजगार पत्र में दिखाया गया है। छात्रों को 'छात्र' दर्ज करना चाहिए। सेवानिवृत्त आवेदकों को 'सेवानिवृत्त' दर्ज करना चाहिए।"
+    }
+  },
+  "faqs": [
+    {
+      "wizardStep": "intake",
+      "question": {
+        "en": "How early should I apply for my French Schengen visa?",
+        "hi": "मुझे अपने फ्रांसीसी शेंगेन वीजा के लिए कितनी जल्दी आवेदन करना चाहिए?"
+      },
+      "answer": {
+        "en": "You can apply up to 6 months before your travel date. The French Embassy in New Delhi typically takes 15–30 days to process applications. During peak season (April–July), apply at least 8 weeks in advance. The earliest you can book a VFS appointment is 6 months before your travel date.",
+        "hi": "आप अपनी यात्रा तिथि से 6 महीने पहले तक आवेदन कर सकते हैं। नई दिल्ली में फ्रांसीसी दूतावास आमतौर पर आवेदनों को 15–30 दिनों में प्रोसेस करता है। पीक सीजन (अप्रैल–जुलाई) में कम से कम 8 सप्ताह पहले आवेदन करें।"
+      },
+      "order": 1
+    },
+    {
+      "wizardStep": "intake",
+      "question": {
+        "en": "Can I apply even if I've never had a Schengen visa before?",
+        "hi": "क्या मैं आवेदन कर सकता हूं भले ही मेरे पास पहले कभी शेंगेन वीजा नहीं रहा हो?"
+      },
+      "answer": {
+        "en": "Yes, absolutely. First-time applicants are common and are not automatically disadvantaged. However, the cover letter should clearly address your ties to India and your intent to return. Strong employment and financial documentation is especially important for first-time applicants.",
+        "hi": "हां, बिल्कुल। पहली बार आवेदन करने वाले आम हैं और उन्हें स्वचालित रूप से नुकसान नहीं होता। हालांकि, कवर लेटर में भारत से आपके संबंध और वापस लौटने की मंशा स्पष्ट रूप से बताई जानी चाहिए।"
+      },
+      "order": 2
+    },
+    {
+      "wizardStep": "documents",
+      "question": {
+        "en": "Do I need to buy my flight tickets before applying?",
+        "hi": "क्या आवेदन करने से पहले फ्लाइट टिकट खरीदना जरूरी है?"
+      },
+      "answer": {
+        "en": "No. A confirmed flight reservation (not a purchased ticket) is sufficient. Many travel agencies and online services offer 'dummy tickets' or 'confirmed reservations' specifically for visa purposes. Do not purchase tickets until your visa is approved.",
+        "hi": "नहीं। एक पुष्ट फ्लाइट आरक्षण (खरीदा हुआ टिकट नहीं) पर्याप्त है। कई ट्रेवल एजेंसियां और ऑनलाइन सेवाएं वीजा उद्देश्यों के लिए 'डमी टिकट' या 'पुष्ट आरक्षण' प्रदान करती हैं। वीजा मंजूर होने तक टिकट न खरीदें।"
+      },
+      "order": 1
+    },
+    {
+      "wizardStep": "documents",
+      "question": {
+        "en": "How much money do I need to show in my bank account?",
+        "hi": "मुझे अपने बैंक खाते में कितना पैसा दिखाना होगा?"
+      },
+      "answer": {
+        "en": "The French Embassy requires a minimum of INR 50,000 per week of your intended stay. For a 2-week trip, you should show at least INR 1,00,000. Beyond the minimum, a consistent salary deposit pattern and savings history are what officers look for. Irregular deposits are a red flag even if the balance is sufficient.",
+        "hi": "फ्रांसीसी दूतावास को आपके इच्छित ठहराव के प्रत्येक सप्ताह के लिए न्यूनतम INR 50,000 की आवश्यकता है। 2 सप्ताह की यात्रा के लिए आपको कम से कम INR 1,00,000 दिखाना चाहिए। न्यूनतम से परे, अधिकारी नियमित वेतन जमा पैटर्न और बचत इतिहास देखते हैं।"
+      },
+      "order": 2
+    },
+    {
+      "wizardStep": "documents",
+      "question": {
+        "en": "I'm self-employed. What documents do I need instead of an employer letter?",
+        "hi": "मैं स्व-नियोजित हूं। नियोक्ता पत्र की जगह मुझे कौन से दस्तावेज चाहिए?"
+      },
+      "answer": {
+        "en": "Self-employed applicants should provide: (1) Certificate of Incorporation or business registration, (2) Last 2 years of Income Tax Returns (ITR), (3) Last 6 months of business bank statements, (4) A self-declaration letter on company letterhead explaining your business, income, and ability to fund the trip.",
+        "hi": "स्व-नियोजित आवेदकों को देना चाहिए: (1) इनकॉर्पोरेशन प्रमाणपत्र या व्यवसाय पंजीकरण, (2) पिछले 2 वर्षों का आयकर रिटर्न (ITR), (3) पिछले 6 महीनों का व्यावसायिक बैंक स्टेटमेंट, (4) कंपनी लेटरहेड पर स्व-घोषणा पत्र।"
+      },
+      "order": 3
+    },
+    {
+      "wizardStep": "form-review",
+      "question": {
+        "en": "What does the confidence colour on each field mean?",
+        "hi": "प्रत्येक फ़ील्ड पर विश्वास रंग का क्या मतलब है?"
+      },
+      "answer": {
+        "en": "Green means the value was read directly from your passport MRZ (very reliable). Yellow means it was extracted by OCR from a document (mostly reliable, please verify). Red means the value was inferred or entered manually and needs your confirmation before the final PDF is generated.",
+        "hi": "हरा मतलब मूल्य सीधे आपके पासपोर्ट MRZ से पढ़ा गया (बहुत विश्वसनीय)। पीला मतलब किसी दस्तावेज़ से OCR द्वारा निकाला गया (अधिकतर विश्वसनीय, कृपया सत्यापित करें)। लाल मतलब मूल्य अनुमान लगाया गया या मैन्युअल रूप से दर्ज किया गया है।"
+      },
+      "order": 1
+    },
+    {
+      "wizardStep": "form-review",
+      "question": {
+        "en": "Can I edit any field before generating the final PDF?",
+        "hi": "क्या मैं अंतिम PDF जनरेट करने से पहले किसी भी फ़ील्ड को संपादित कर सकता हूं?"
+      },
+      "answer": {
+        "en": "Yes. Every field is editable. Click on any field to change its value. Your changes are saved automatically. The final PDF is only generated when you click 'Approve and Generate PDF' — you remain in control at every step.",
+        "hi": "हां। हर फ़ील्ड संपादन योग्य है। मूल्य बदलने के लिए किसी भी फ़ील्ड पर क्लिक करें। आपके परिवर्तन स्वचालित रूप से सहेजे जाते हैं। अंतिम PDF केवल तभी जनरेट होती है जब आप 'स्वीकृत करें और PDF जनरेट करें' पर क्लिक करते हैं।"
+      },
+      "order": 2
+    },
+    {
+      "wizardStep": "quality-check",
+      "question": {
+        "en": "What is a 'blocker' vs a 'warning' in the quality check?",
+        "hi": "गुणवत्ता जांच में 'ब्लॉकर' और 'चेतावनी' में क्या अंतर है?"
+      },
+      "answer": {
+        "en": "A Blocker is an issue that will very likely cause your visa to be refused — for example, a missing required document or insufficient funds. You must resolve all blockers before submitting. A Warning is something that might cause extra scrutiny or a request for additional documents, but won't automatically lead to refusal.",
+        "hi": "एक ब्लॉकर एक ऐसी समस्या है जो बहुत संभावना से आपके वीजा को अस्वीकार करवाएगी — जैसे लापता आवश्यक दस्तावेज़ या अपर्याप्त धन। सबमिट करने से पहले सभी ब्लॉकर्स को हल करना आवश्यक है। एक चेतावनी कुछ ऐसी है जो अतिरिक्त जांच या अतिरिक्त दस्तावेजों के अनुरोध का कारण बन सकती है।"
+      },
+      "order": 1
+    }
+  ]
+}

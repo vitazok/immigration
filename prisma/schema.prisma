@@ -1,0 +1,199 @@
+// VisaAgent — Prisma Schema
+// Database: PostgreSQL (Railway managed)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Applicant ────────────────────────────────────────────────────────────────
+
+model Applicant {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique // Clerk user ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Personal info
+  surname              String?
+  surnameAtBirth       String?
+  givenNames           String?
+  dateOfBirth          String? // YYYY-MM-DD
+  placeOfBirth         String?
+  countryOfBirth       String? // ISO 3166-1 alpha-3
+  currentNationality   String? // ISO 3166-1 alpha-3
+  nationalityAtBirth   String?
+  sex                  String? // "male" | "female"
+  maritalStatus        String? // "single" | "married" | ...
+
+  // Contact
+  homeAddressJson String? // JSON: Address
+  email           String?
+  phone           String?
+
+  // Passport
+  passportNumber           String?
+  passportIssueDate        String?
+  passportExpiryDate       String?
+  passportIssuingAuthority String?
+  passportIssuingCountry   String?
+  mrzLine1                 String?
+  mrzLine2                 String?
+
+  // Employment
+  occupation            String?
+  employerName          String?
+  employerAddressJson   String? // JSON: Address
+  employerPhone         String?
+  jobTitle              String?
+  monthlySalaryJson     String? // JSON: MoneyAmount
+  employmentStartDate   String?
+
+  // Financial
+  bankName                 String?
+  accountBalanceJson       String? // JSON: MoneyAmount
+  averageMonthlyBalanceJson String? // JSON: MoneyAmount
+
+  // Travel history
+  previousSchengenVisasJson     String? // JSON: PreviousVisa[]
+  fingerprintsPreviouslyCollected Boolean @default(false)
+  fingerprintsDate               String?
+
+  // Ties to home country
+  propertyOwnership Boolean @default(false)
+  familyDependents  String?
+  returnIntent      String?
+
+  // Relations
+  trips         Trip[]
+  documents     DocumentUpload[]
+  intakeSessions IntakeSession[]
+  qualityResults QualityCheckResult[]
+
+  @@index([clerkId])
+}
+
+// ─── Trip ─────────────────────────────────────────────────────────────────────
+
+model Trip {
+  id          String   @id @default(cuid())
+  applicantId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mainDestination      String? // ISO 3166-1 alpha-3
+  otherDestinations    String? // JSON: string[]
+  firstEntryCountry    String?
+  purpose              String?
+  purposeDescription   String?
+  arrivalDate          String?
+  departureDate        String?
+  durationDays         Int?
+  entriesRequested     String? // "single" | "double" | "multiple"
+
+  // Accommodation
+  accommodationType    String?
+  accommodationName    String?
+  accommodationAddressJson String? // JSON: Address
+  accommodationPhone   String?
+  accommodationEmail   String?
+
+  // Inviting
+  invitingPersonJson       String? // JSON: InvitingPerson
+  invitingOrganizationJson String? // JSON: InvitingOrganization
+
+  // Financial means
+  costCoveredBy    String? // "self" | "sponsor"
+  meansOfSupport   String? // JSON: string[]
+
+  // Consulate determination
+  targetConsulateId String?
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+}
+
+// ─── Intake Session ───────────────────────────────────────────────────────────
+
+model IntakeSession {
+  id          String   @id @default(cuid())
+  applicantId String?
+  locale      String   @default("en")
+  status      String   @default("active") // "active" | "completed" | "abandoned"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  currentQuestionId  String?
+  answersJson        String? // JSON: Record<string, unknown>
+  progressPercent    Int     @default(0)
+  consulateId        String?
+  riskAssessmentJson String? // JSON: { level, flags }
+
+  applicant Applicant? @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+
+  @@index([applicantId])
+}
+
+// ─── Document Upload ──────────────────────────────────────────────────────────
+
+model DocumentUpload {
+  id          String   @id @default(cuid())
+  applicantId String
+  type        String   // DocumentType
+  fileName    String
+  fileUrl     String   // R2 URL
+  mimeType    String
+  uploadedAt  DateTime @default(now())
+
+  extractionStatus     String  @default("pending") // "pending" | "processing" | "completed" | "failed"
+  extractionResultJson String? // JSON: DocumentExtraction
+  extractionConfidence Float?
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+}
+
+// ─── Form State ───────────────────────────────────────────────────────────────
+
+model FormState {
+  id          String   @id @default(cuid())
+  applicantId String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Filled field values, keyed by acroFormFieldId
+  fieldValuesJson    String? // JSON: Record<string, string>
+  // User overrides (manual corrections), keyed by field number
+  userOverridesJson  String? // JSON: Record<number, string>
+  // Final PDF URL after finalization
+  finalPdfUrl        String?
+  coverLetterUrl     String?
+  coverLetterText    String?
+  status             String  @default("draft") // "draft" | "reviewing" | "finalized"
+
+  @@index([applicantId])
+}
+
+// ─── Quality Check ────────────────────────────────────────────────────────────
+
+model QualityCheckResult {
+  id          String   @id @default(cuid())
+  applicantId String
+  checkedAt   DateTime @default(now())
+
+  overallScore  Int    // 0–100
+  riskLevel     String // "low" | "medium" | "high"
+  blockersJson  String // JSON: QualityIssue[]
+  warningsJson  String // JSON: QualityIssue[]
+  recommendationsJson String // JSON: QualityIssue[]
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+}

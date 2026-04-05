@@ -1,0 +1,38 @@
+{
+  "title": "Quality check",
+  "subtitle": "Reviewing your complete application package…",
+  "score": {
+    "label": "Application score",
+    "strong": "Strong application",
+    "acceptable": "Acceptable",
+    "concerns": "Significant concerns",
+    "likelyRefusal": "Likely refusal risk"
+  },
+  "risk": {
+    "low": "Low risk",
+    "medium": "Medium risk",
+    "high": "High risk"
+  },
+  "sections": {
+    "blockers": "Issues to fix (required)",
+    "warnings": "Potential concerns",
+    "recommendations": "Recommendations"
+  },
+  "issue": {
+    "affectedFields": "Affects form fields: {fields}",
+    "suggestedAction": "What to do"
+  },
+  "empty": {
+    "blockers": "No blocking issues found.",
+    "warnings": "No warnings.",
+    "recommendations": "No recommendations."
+  },
+  "actions": {
+    "fixIssues": "Fix issues",
+    "rerun": "Re-run check",
+    "proceed": "Proceed to finalize"
+  },
+  "staleness": {
+    "banner": "Consulate requirements were last verified on {date}. Please check the VFS website for any recent changes."
+  }
+}

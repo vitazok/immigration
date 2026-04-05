@@ -1,0 +1,22 @@
+{
+  "tooltip": {
+    "label": "Help",
+    "close": "Close"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "close": "Close",
+    "noFaqs": "No FAQs available for this step."
+  },
+  "chat": {
+    "title": "Ask VisaAgent",
+    "placeholder": "Ask a question about your application…",
+    "send": "Send",
+    "thinking": "Thinking…",
+    "rateLimit": "Too many messages. Please wait a moment.",
+    "error": "Couldn't get a response. Please try again.",
+    "disclaimer": "AI assistant. Not legal advice.",
+    "open": "Open chat",
+    "close": "Close chat"
+  }
+}

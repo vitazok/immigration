@@ -1,0 +1,37 @@
+{
+  "title": "Review your application form",
+  "subtitle": "Check every field before generating your PDF. You can edit any value.",
+  "confidence": {
+    "high": "High confidence",
+    "medium": "Please verify",
+    "low": "Needs review",
+    "legend": "Confidence legend"
+  },
+  "field": {
+    "editLabel": "Edit field",
+    "saveLabel": "Save",
+    "cancelLabel": "Cancel",
+    "source": "Source: {source}"
+  },
+  "preview": {
+    "title": "Form preview",
+    "loading": "Loading preview…"
+  },
+  "coverLetter": {
+    "title": "Cover letter",
+    "generating": "Generating your cover letter…",
+    "generated": "Cover letter ready",
+    "editHint": "You can copy and edit this text",
+    "generateCta": "Generate Cover Letter"
+  },
+  "actions": {
+    "generatePdf": "Approve & Generate PDF",
+    "generating": "Generating PDF…",
+    "pdfReady": "PDF ready",
+    "downloadPdf": "Download PDF",
+    "goToQuality": "Run Quality Check"
+  },
+  "warning": {
+    "reviewAll": "Please review all yellow and red fields before generating the final PDF."
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "app": {
+    "name": "VisaAgent",
+    "tagline": "Your Schengen visa, done right.",
+    "disclaimer": "VisaAgent helps you prepare your visa application. We do not guarantee approval. Final decisions rest with the Embassy."
+  },
+  "nav": {
+    "intake": "Application",
+    "documents": "Documents",
+    "formReview": "Review Form",
+    "qualityCheck": "Quality Check",
+    "dashboard": "Dashboard",
+    "signIn": "Sign In",
+    "signUp": "Get Started",
+    "signOut": "Sign Out"
+  },
+  "actions": {
+    "continue": "Continue",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "upload": "Upload",
+    "download": "Download",
+    "generate": "Generate",
+    "approve": "Approve",
+    "retry": "Try Again"
+  },
+  "status": {
+    "loading": "Loading…",
+    "processing": "Processing…",
+    "uploading": "Uploading…",
+    "generating": "Generating…",
+    "done": "Done",
+    "error": "Something went wrong"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Connection error. Please check your internet and try again.",
+    "unauthorized": "Please sign in to continue.",
+    "notFound": "Page not found."
+  },
+  "locale": {
+    "en": "English",
+    "hi": "हिन्दी",
+    "zh-CN": "中文"
+  },
+  "steps": {
+    "of": "of",
+    "step": "Step"
+  }
+}

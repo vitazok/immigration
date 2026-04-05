@@ -1,0 +1,34 @@
+{
+  "title": "Tell us about your trip",
+  "subtitle": "We'll guide you through each question to prepare your complete application.",
+  "progress": {
+    "label": "Application progress",
+    "complete": "Application complete"
+  },
+  "question": {
+    "required": "Required",
+    "optional": "Optional",
+    "placeholder": {
+      "text": "Type your answer…",
+      "date": "YYYY-MM-DD",
+      "select": "Choose an option"
+    }
+  },
+  "checklist": {
+    "title": "Your document checklist",
+    "subtitle": "Based on your answers, you'll need these documents:",
+    "required": "Required",
+    "recommended": "Recommended"
+  },
+  "risk": {
+    "low": "Low risk",
+    "medium": "Medium risk",
+    "high": "High risk",
+    "label": "Application risk assessment"
+  },
+  "complete": {
+    "title": "Interview complete",
+    "subtitle": "Now upload your documents.",
+    "cta": "Go to Documents"
+  }
+}
