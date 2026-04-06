@@ -23,6 +23,9 @@ prisma/migrations/
 coverage/
 .vitest/
 
+# Local uploads (dev fallback when R2 not configured)
+.uploads/
+
 # Misc
 .DS_Store
 *.pem

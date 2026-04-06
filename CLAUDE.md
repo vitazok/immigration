@@ -22,6 +22,21 @@ Repo: github.com/vitazok/immigration (monorepo)
 - **File storage:** Cloudflare R2 (S3-compatible, use `@aws-sdk/client-s3`)
 - **Payment:** Stripe (post-MVP, but install and configure skeleton now)
 
+## Key Decisions (settled)
+
+| Topic | Decision |
+|---|---|
+| Backend | Next.js API routes only — no Fastify |
+| Locales at launch | English (en) + Hindi (hi) — Chinese (zh-CN) deferred |
+| OCR processing | Synchronous with polling (works on Vercel free tier) |
+| Cover letter | Single best output, tone chosen by LLM based on risk profile |
+| Stripe | Skeleton only (package + env + webhook stub) |
+| Deployment | Vercel (frontend) + Railway (PostgreSQL) |
+| PDF form | Real AcroForm field IDs extracted from `CS_14076-05_EN_05.pdf` |
+| pgvector | Not needed for MVP — JSON in-memory knowledge base |
+| LLM provider | OpenRouter (free tier) via `openai` SDK — not Anthropic directly |
+| Models | Smart `qwen/qwen3.6-plus:free` for generation · Fast `openai/gpt-oss-20b:free` for chat |
+
 ## Commands
 
 ```bash
@@ -40,10 +55,17 @@ npm run seed             # Seed knowledge base from data/consulates/
 ## User Flow
 
 1. **Landing + Onboarding** (`/[locale]`) — 3 dropdowns (nationality, destination, purpose) → visa recommendation card → "Start application"
-2. **Application Dashboard** (`/[locale]/application/[id]`) — Document checklist + 6-section form (37 fields) with inline editing, confidence indicators, progress bar
-3. **Quality Check** (`/[locale]/quality-check`) — AI-powered blockers/warnings/recommendations → finalize PDF + cover letter
+2. **Application Journey** (`/[locale]/application/[id]`) — 5-step journey view:
+   - **Step 1: Upload Documents** — Document checklist with upload modal (auth-gated), drag-and-drop
+   - **Step 2: Fill Application Form** — 6 collapsible sections (24 fields), auto-prefilled from document extraction with confidence indicators (green/yellow/red borders), source labels ("From passport")
+   - **Step 3: Quality Check & Finalize** — Inline AI quality check (blockers/warnings/recommendations) + PDF generation
+   - **Step 4: Submit at VFS** — Guidance card: booking link, fee breakdown, what-to-bring checklist, biometrics note. Manual "Mark as done" checkbox.
+   - **Step 5: Track Decision** — Processing timeline, tracking link, what happens if approved/refused. Manual "Mark as done" checkbox.
+3. Steps 1-3 have auto-computed status based on data. Steps 4-5 are guidance with manual completion.
 
-Auth gate: anonymous until upload or form save → then Clerk sign-in.
+Auth gate: anonymous until upload or form save → then Clerk sign-in. After sign-in, applicant record is auto-linked via `POST /api/application/[id]/link`.
+
+**Auto-prefill pipeline:** Upload document → OCR (Google Vision) → MRZ parse (passport) + LLM extraction → `syncExtractionToApplicant()` writes fields to Applicant record with provenance tracking → form reads pre-filled values on next load.
 
 ## Project Structure
 
@@ -51,7 +73,6 @@ Auth gate: anonymous until upload or form save → then Clerk sign-in.
 /
 ├── CLAUDE.md                          # This file
 ├── visaagent-prd.md                   # Full PRD — READ THIS FIRST
-├── TODO.md                            # Build log, session history, next steps
 ├── package.json
 ├── .env.example
 ├── data/
@@ -70,7 +91,7 @@ Auth gate: anonymous until upload or form save → then Clerk sign-in.
 │   │   │   ├── sign-in/[[...sign-in]]/
 │   │   │   └── sign-up/[[...sign-up]]/
 │   │   └── api/                       # API route handlers
-│   │       ├── application/           # POST create, GET [id], PUT [id]/form
+│   │       ├── application/           # POST create, GET [id], PUT [id]/form, POST [id]/link, PUT [id]/journey-step
 │   │       ├── documents/
 │   │       ├── assembly/
 │   │       ├── quality/
@@ -81,7 +102,9 @@ Auth gate: anonymous until upload or form save → then Clerk sign-in.
 │   │   ├── auth.ts                    # getClerkUserId() — returns null for anon
 │   │   ├── intake/                    # Consulate routing only (no interview logic)
 │   │   │   └── consulate-router.ts    # (nationality, dest, purpose) → VisaRecommendation
-│   │   ├── documents/                 # Layer 2: OCR & extraction
+│   │   ├── documents/                 # Layer 2: OCR & extraction + sync-to-applicant
+│   │   ├── journey/                   # Journey step status derivation
+│   │   │   └── derive-status.ts       # Compute step statuses from application data
 │   │   ├── knowledge/                 # Layer 3: Knowledge base queries
 │   │   ├── assembly/                  # Layer 4: Form filling & doc gen
 │   │   ├── quality/                   # Layer 5: Validation & checks
@@ -91,7 +114,7 @@ Auth gate: anonymous until upload or form save → then Clerk sign-in.
 │   │   ├── db/                        # Prisma client & helpers
 │   │   └── types/                     # Shared TypeScript interfaces
 │   │       ├── applicant.ts
-│   │       ├── application.ts         # VisaRecommendation, ApplicationSummary
+│   │       ├── application.ts         # VisaRecommendation, JourneyStep, StepStatus, ExtractionMeta
 │   │       ├── trip.ts
 │   │       ├── documents.ts
 │   │       ├── consulate.ts
@@ -101,7 +124,7 @@ Auth gate: anonymous until upload or form save → then Clerk sign-in.
 │   ├── components/
 │   │   ├── ui/                        # Reusable primitives (button, input, card, etc.)
 │   │   ├── onboarding/                # VisaFinder, RecommendationCard
-│   │   ├── application/               # Dashboard, DocumentChecklist, FormSections, etc.
+│   │   ├── application/               # Dashboard, JourneyProgress, JourneyStep, FormSections, QualityCheckPanel, VfsSubmissionStep, TrackDecisionStep, etc.
 │   │   ├── documents/                 # UploadZone, DocumentCard, ExtractionReview
 │   │   ├── form-review/               # FieldRow, ConfidenceBadge, PdfPreview
 │   │   ├── help/                      # Tooltips, FAQ drawer, chat widget
@@ -110,7 +133,7 @@ Auth gate: anonymous until upload or form save → then Clerk sign-in.
 │       ├── en/
 │       └── hi/
 ├── prisma/
-│   └── schema.prisma                  # 7 models: Application, Applicant, Trip, etc.
+│   └── schema.prisma                  # 7 models + journeyProgressJson on Application, fieldProvenanceJson on Applicant
 ├── tests/
 │   ├── fixtures/                      # Synthetic test data (3 profiles, MRZ samples, bank stmts)
 │   ├── unit/                          # mrz, form-mapper, quality-rules, consulate-router
@@ -184,7 +207,8 @@ The app must feel fast. Target users are on 4G mobile connections in India — e
 - Translation JSON files live in `src/messages/{locale}/`
 - All user-facing strings use `t('namespace.key')` — NEVER hardcode English text in components
 - Key format: `{feature}.{context}.{element}` — e.g., `intake.question.nationality`, `form.field.surname.tooltip`, `help.faq.bankStatement.q1`
-- All 3 locales (en, zh-CN, hi) must be updated together. Never add a key to one locale without the other two.
+- Namespaces: `common`, `intake`, `documents`, `form`, `quality`, `help`, `journey` — registered in `src/i18n.ts`
+- All 2 active locales (en, hi) must be updated together. Never add a key to one locale without the other. zh-CN deferred.
 - The Schengen application form is always filled in English regardless of UI locale
 - LLM-generated dynamic content (cover letters, chat responses) should be generated in the user's selected locale
 - Language switcher in header — switching must not cause page reload or form state loss
@@ -208,11 +232,13 @@ Full route contracts with request/response shapes are in PRD Section 9. Key endp
 
 **Application (new flow):**
 - `POST /api/application/create` — Create application from onboarding (nationality + destination + purpose). No auth required. Returns `{ applicationId, tripId, recommendation }`.
-- `GET /api/application/[id]` — Get full application state (docs, form fields, progress, applicant, trip, recommendation, requiredDocuments). No auth required.
+- `GET /api/application/[id]` — Get full application state (docs, form fields, progress, applicant, trip, recommendation, requiredDocuments, extractionMeta, qualityCheckResult, journeyProgress, consulateGuidance). No auth required.
 - `PUT /api/application/[id]/form` — Save form field values (partial updates). **Requires auth.** Fields prefixed `applicant.*` update Applicant, `trip.*` update Trip.
+- `POST /api/application/[id]/link` — Link authenticated user to application (upserts Applicant, sets applicantId on Application + Trip). **Requires auth.** Idempotent.
+- `PUT /api/application/[id]/journey-step` — Toggle manual step completion (steps 4-5). Body: `{ stepId, completed }`. Stores in `Application.journeyProgressJson`.
 
 **Documents & Assembly:**
-- `POST /api/documents/upload` — Upload document for extraction
+- `POST /api/documents/upload` — Upload document for extraction. Returns 202 immediately, extraction runs async.
 - `POST /api/assembly/generate-form` — Generate filled PDF
 - `POST /api/assembly/generate-cover-letter` — Generate cover letter
 - `POST /api/quality/check` — Run quality checks
@@ -230,14 +256,52 @@ Pipeline steps:
 5. User reviews and corrects
 6. Generate final flattened PDF on user approval
 
-**Critical:** Before building the pipeline, download the official French-variant harmonised form (cerfa 14076*02) and extract actual AcroForm field IDs:
-```typescript
-import { PDFDocument } from 'pdf-lib';
-const pdf = await PDFDocument.load(formBytes);
-const form = pdf.getForm();
-form.getFields().forEach(f => console.log(f.getName(), f.constructor.name));
+### Confirmed AcroForm Field IDs (from CS_14076-05_EN_05.pdf)
+
 ```
-Update the mapping table with real field IDs.
+applicantSurname, applicantSurnameAtBirth, applicantFirstname
+applicantDateOfBirth, applicantPlaceOfBirth, applicantCountryOfBirth
+applicantNationality, applicantNationalityAtBirth, applicantNationalityOther
+applicantGenderM, applicantGenderF, applicantGenderA
+applicantMaritalCEL, applicantMaritalMAR, applicantMaritalSEP
+applicantMaritalDIV, applicantMaritalVEU, applicantMaritalAUT
+applicantMaritalPAC, applicantMaritalOther
+applicantIdCardNumber
+travelDocTypePSP, travelDocTypePO, travelDocTypePOF
+travelDocTypePSV, travelDocTypeAUT, travelDocTypeOther
+travelDocNumber, travelDocDateOfIssue, travelDocValidUntil, travelDocCountries
+applicantResidencePermitYes, applicantResidencePermitNo
+applicantResidencePermitNumber, applicantResidencePermitValidUntil
+nationalFamilySurname, nationalFamilyFirstNames, nationalFamilyNationality
+nationalFamilyCardNumber, nationalFamilyDateOfBirth
+relationshipAAC, relationshipAUT, relationshipCON
+relationshipENF, relationshipPAC, relationshipPFI
+applicantAddressL1-L6, applicantPhone
+applicantOccupation, applicantOccupationAddressL1-L3
+purposeTOUR, purposeVISF, purposeATRA, purposeVOFF, purposeSPOR
+purposeCULT, purposeETUD, purposeMEDI, purposeTRAV, purposeAUTR
+purposeOther, purposeOfJourneyInfo
+applicantDestinations, applicantDestinationFirstEntry
+entries1, entries2, entriesM
+formerBiometricVisa
+hasFingerprintsTrue, hasFingerprintsFalse, fingerprintsDate
+entryPermitAuthority, entryPermitBeginningDate, entryPermitTerminationDate
+dateOfArrival, dateOfDeparture
+host1Names, host1AddressL1-L3, host1Phone
+host2Names, host2AddressL1-L3, host2Phone
+hostOrganizationAddressL1-L6, hostOrganizationPhone
+hostOrganizationContactAddressL1-L6
+fundingTypeM_ARG, fundingTypeM_AUT, fundingTypeM_CCR, fundingTypeM_CHQ
+fundingTypeM_HPP, fundingTypeM_TPP, fundingTypeM_Other
+fundingTypeHAS_ARG, fundingTypeHAS_AUT, fundingTypeHAS_HFO
+fundingTypeHAS_TFP, fundingTypeHAS_TPA, fundingTypeHAS_Other
+sponsorTypeA, sponsorTypeHAS, sponsorTypeHS, sponsorTypeM, sponsorTypeOther
+townAndDateTime
+parental1Names, parental1AddressL1-L5
+parental2Names, parental2AddressL1-L5
+representativeNames, representativeAddressL1-L6, representativePhone
+applicationNumber, applicationNumberPart1, applicationNumberPart2, modificationDate
+```
 
 ## Knowledge Base
 
@@ -292,6 +356,14 @@ Full error handling matrix is in PRD Section 16. Key rules:
 - Database connection via SSL
 - Never log PII (passport numbers, bank account numbers) — mask in logs
 
+## Dev Fallbacks (local testing without external services)
+
+When external API keys are placeholders, the app uses fallbacks so the full pipeline is testable locally:
+
+- **Cloudflare R2 → local filesystem:** When `R2_ENDPOINT` contains "PLACEHOLDER", files save to `.uploads/` instead of S3. Set in `src/lib/documents/upload.ts`.
+- **Google Vision OCR → sample MRZ:** When `GOOGLE_CLOUD_VISION_API_KEY` contains "PLACEHOLDER", returns synthetic passport text with MRZ lines (KUMAR RAHUL, passport N1234567). The MRZ parser extracts real fields, LLM extraction runs on the sample text. Set in `src/lib/documents/ocr.ts`.
+- **Result:** Upload → extraction → auto-prefill all work end-to-end with sample data. Only the database and OpenRouter are required for local dev.
+
 ## Things NOT to Do
 
 - **Never** store raw passport images longer than the processing session
@@ -304,3 +376,22 @@ Full error handling matrix is in PRD Section 16. Key rules:
 - **Never** write raw SQL — use Prisma
 - **Never** access `process.env` directly in business logic — use the typed `env.ts`
 - **Never** generate test data with real names, passport numbers, or financial data
+
+## Remaining Work
+
+1. **Wire Step 3 end-to-end** — QualityCheckPanel needs to call the quality check API and display results inline. PDF generation + cover letter generation should trigger from Step 3 UI. The backend APIs exist (`/api/quality/check`, `/api/assembly/generate-form`, `/api/assembly/generate-cover-letter`) but aren't connected to the journey UI yet.
+2. **Test with real documents** — upload a real passport PDF/image with Google Vision configured to verify OCR → MRZ → auto-prefill on actual documents.
+3. **Remaining hardcoded English** — `document-checklist.tsx`, `document-upload-modal.tsx`, and `form-field.tsx` may still have hardcoded strings that should use `t()`.
+4. **Evaluate free model quality** — switch to paid OpenRouter models if extraction/cover letter output isn't good enough.
+
+## Human Action Required
+
+1. ~~**Clerk** — create app at clerk.com, set keys in `.env.local`~~ Done
+2. ~~**Railway** — create PostgreSQL, set `DATABASE_URL`, run `prisma db push`~~ Done
+3. ~~**OpenRouter** — get API key, set `OPENROUTER_API_KEY`~~ Done
+4. ~~**PDF form** — `CS_14076-05_EN_05.pdf` copied to `public/forms/schengen-form.pdf`~~ Done
+5. **Cloudflare R2** — create bucket `visaagent-documents`, generate API token with R2 read/write, set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` (`https://<account-id>.r2.cloudflarestorage.com`) in `.env.local`. Until done, uploads save locally.
+6. **Google Cloud Vision** — console.cloud.google.com → enable "Cloud Vision API" → create API key → set `GOOGLE_CLOUD_VISION_API_KEY` in `.env.local`. Until done, OCR uses dev fallback with sample data.
+7. **Hindi translations** — review `src/messages/hi/` with a native speaker before launch.
+8. **Cover letter quality** — review AI-generated output against real immigration consultant feedback.
+9. **Test with real passport** — once Vision is configured, upload a real scan to verify the full pipeline.

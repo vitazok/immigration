@@ -131,6 +131,15 @@
   ],
   "lastVerifiedDate": "2026-03-15",
   "refusalRateEstimate": 0.16,
+  "fees": {
+    "visaFee": { "amount": 80, "currency": "EUR" },
+    "vfsServiceCharge": { "amount": 2250, "currency": "INR" },
+    "note": {
+      "en": "Fees are payable at the VFS appointment centre. Check VFS website for accepted payment methods.",
+      "hi": "शुल्क VFS अपॉइंटमेंट केंद्र पर देय हैं। स्वीकृत भुगतान विधियों के लिए VFS वेबसाइट देखें।"
+    }
+  },
+  "vfsTrackingUrl": "https://visa.vfsglobal.com/ind/en/fra/track-application",
   "formFieldOverrides": {},
   "tooltips": {
     "applicantSurname": {

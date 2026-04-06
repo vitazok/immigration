@@ -10,7 +10,7 @@ export default getRequestConfig(async ({ locale }) => {
   if (!locales.includes(locale as Locale)) notFound();
 
   // Merge all namespace files into a single messages object
-  const namespaces = ['common', 'intake', 'documents', 'form', 'quality', 'help'];
+  const namespaces = ['common', 'intake', 'documents', 'form', 'quality', 'help', 'journey'];
   const messages: AbstractIntlMessages = {};
 
   for (const ns of namespaces) {

@@ -3,16 +3,25 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { env } from '@/lib/env';
 import { prisma } from '@/lib/db/client';
 import { extractDocumentData } from './extraction';
+import { syncExtractionToApplicant } from './sync-to-applicant';
 import type { DocumentType } from '@/lib/types/documents';
+import { writeFile, mkdir, unlink } from 'fs/promises';
+import { join } from 'path';
 
-const s3 = new S3Client({
-  region: 'auto',
-  endpoint: env.R2_ENDPOINT,
-  credentials: {
-    accessKeyId: env.R2_ACCESS_KEY_ID,
-    secretAccessKey: env.R2_SECRET_ACCESS_KEY,
-  },
-});
+const isR2Configured = !env.R2_ENDPOINT.includes('PLACEHOLDER');
+
+const s3 = isR2Configured
+  ? new S3Client({
+      region: 'auto',
+      endpoint: env.R2_ENDPOINT,
+      credentials: {
+        accessKeyId: env.R2_ACCESS_KEY_ID,
+        secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+      },
+    })
+  : null;
+
+const LOCAL_UPLOAD_DIR = join(process.cwd(), '.uploads');
 
 export async function uploadDocument(params: {
   applicantId: string;
@@ -28,21 +37,31 @@ export async function uploadDocument(params: {
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
   const storageKey = `documents/${applicantId}/${timestamp}_${sanitizedName}`;
 
-  // Upload to R2
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: env.R2_BUCKET_NAME,
-      Key: storageKey,
-      Body: file,
-      ContentType: mimeType,
-      Metadata: {
-        applicantId,
-        documentType,
-      },
-    })
-  );
+  let fileUrl: string;
 
-  const fileUrl = `${env.R2_ENDPOINT}/${env.R2_BUCKET_NAME}/${storageKey}`;
+  if (s3) {
+    // Upload to R2
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: env.R2_BUCKET_NAME,
+        Key: storageKey,
+        Body: file,
+        ContentType: mimeType,
+        Metadata: {
+          applicantId,
+          documentType,
+        },
+      })
+    );
+    fileUrl = `${env.R2_ENDPOINT}/${env.R2_BUCKET_NAME}/${storageKey}`;
+  } else {
+    // Local filesystem fallback for development
+    const localPath = join(LOCAL_UPLOAD_DIR, storageKey);
+    await mkdir(join(LOCAL_UPLOAD_DIR, 'documents', applicantId), { recursive: true });
+    await writeFile(localPath, file);
+    fileUrl = `file://${localPath}`;
+    console.log(`[upload] R2 not configured — saved locally: ${localPath}`);
+  }
 
   // Create database record
   const doc = await prisma.documentUpload.create({
@@ -56,9 +75,8 @@ export async function uploadDocument(params: {
     },
   });
 
-  // Run extraction synchronously (returns quickly for MVP)
-  // The client polls GET /api/documents/:id/extraction for status
-  processDocument(doc.id, file, mimeType, documentType).catch((err) => {
+  // Run extraction asynchronously — client polls GET /api/documents/:id/extraction for status
+  processDocument(doc.id, applicantId, file, mimeType, documentType).catch((err) => {
     console.error(`[upload] Extraction failed for document ${doc.id}:`, err);
     prisma.documentUpload.update({
       where: { id: doc.id },
@@ -71,6 +89,7 @@ export async function uploadDocument(params: {
 
 async function processDocument(
   documentId: string,
+  applicantId: string,
   file: Buffer,
   mimeType: string,
   documentType: DocumentType
@@ -91,6 +110,22 @@ async function processDocument(
       extractionConfidence: avgConfidence,
     },
   });
+
+  // Auto-sync extracted fields to Applicant record (fills empty fields only)
+  if (applicantId) {
+    try {
+      const result = await syncExtractionToApplicant(applicantId, documentId, extraction);
+      if (Object.keys(result.applied).length > 0) {
+        console.log(`[upload] Auto-synced ${Object.keys(result.applied).length} fields from ${documentType} to applicant ${applicantId}`);
+      }
+      if (result.conflicts.length > 0) {
+        console.log(`[upload] ${result.conflicts.length} conflicts detected for applicant ${applicantId}`);
+      }
+    } catch (err) {
+      console.error(`[upload] Sync to applicant failed for document ${documentId}:`, err);
+      // Non-fatal — extraction still saved, sync can be retried
+    }
+  }
 }
 
 export async function deleteDocument(documentId: string, applicantId: string): Promise<void> {
@@ -101,20 +136,30 @@ export async function deleteDocument(documentId: string, applicantId: string): P
 
   if (!doc) return;
 
-  // Extract storage key from URL
-  const storageKey = doc.fileUrl.replace(`${env.R2_ENDPOINT}/${env.R2_BUCKET_NAME}/`, '');
-
-  await s3.send(
-    new DeleteObjectCommand({
-      Bucket: env.R2_BUCKET_NAME,
-      Key: storageKey,
-    })
-  );
+  if (doc.fileUrl.startsWith('file://')) {
+    // Local file — delete from filesystem
+    try {
+      await unlink(doc.fileUrl.replace('file://', ''));
+    } catch { /* file may already be gone */ }
+  } else if (s3) {
+    // R2 file — delete from S3
+    const storageKey = doc.fileUrl.replace(`${env.R2_ENDPOINT}/${env.R2_BUCKET_NAME}/`, '');
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: env.R2_BUCKET_NAME,
+        Key: storageKey,
+      })
+    );
+  }
 
   await prisma.documentUpload.delete({ where: { id: documentId } });
 }
 
 export async function getPresignedUploadUrl(storageKey: string): Promise<string> {
+  if (!s3) {
+    // In local dev, return a placeholder — presigned URLs aren't used in the upload flow
+    return `file://${join(LOCAL_UPLOAD_DIR, storageKey)}`;
+  }
   const command = new PutObjectCommand({
     Bucket: env.R2_BUCKET_NAME,
     Key: storageKey,

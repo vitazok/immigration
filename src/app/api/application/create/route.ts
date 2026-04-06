@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     // Create trip record
     const trip = await prisma.trip.create({
       data: {
-        applicantId: applicantId ?? '',
+        applicantId,
         mainDestination: body.destination,
         purpose: body.purpose,
         targetConsulateId: recommendation.consulateId,

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
 import { getConsulate } from '@/lib/knowledge/queries';
-import type { VisaRecommendation } from '@/lib/types/application';
+import type { VisaRecommendation, JourneyProgress, ExtractionMeta } from '@/lib/types/application';
+import type { DocumentExtraction } from '@/lib/types/documents';
+import type { FieldProvenance } from '@/lib/documents/sync-to-applicant';
 
 export async function GET(
   _req: NextRequest,
@@ -38,6 +40,7 @@ export async function GET(
     // Load form state
     let formFields: Record<string, string> = {};
     let formFieldsFilled = 0;
+    let hasFinalPdf = false;
     if (application.applicantId) {
       const formState = await prisma.formState.findUnique({
         where: { applicantId: application.applicantId },
@@ -46,14 +49,32 @@ export async function GET(
         formFields = JSON.parse(formState.fieldValuesJson) as Record<string, string>;
         formFieldsFilled = Object.values(formFields).filter((v) => v.trim() !== '').length;
       }
+      if (formState?.finalPdfUrl) {
+        hasFinalPdf = true;
+      }
     }
 
     // Load applicant + trip data for form prefill
     let applicant = null;
+    let extractionMeta: Record<string, ExtractionMeta> = {};
     if (application.applicantId) {
       applicant = await prisma.applicant.findUnique({
         where: { id: application.applicantId },
       });
+      // Build extraction metadata from field provenance
+      if (applicant?.fieldProvenanceJson) {
+        try {
+          const provenance = JSON.parse(applicant.fieldProvenanceJson) as Record<string, FieldProvenance>;
+          for (const [column, prov] of Object.entries(provenance)) {
+            extractionMeta[`applicant.${column}`] = {
+              confidence: prov.confidence,
+              source: prov.source,
+              documentType: prov.documentType,
+              documentId: prov.documentId,
+            };
+          }
+        } catch { /* ignore parse errors */ }
+      }
     }
 
     let trip = null;
@@ -62,6 +83,29 @@ export async function GET(
         where: { id: application.tripId },
       });
     }
+
+    // Load latest quality check result
+    let qualityCheckResult = null;
+    if (application.applicantId) {
+      const qcr = await prisma.qualityCheckResult.findFirst({
+        where: { applicantId: application.applicantId },
+        orderBy: { checkedAt: 'desc' },
+      });
+      if (qcr) {
+        qualityCheckResult = {
+          overallScore: qcr.overallScore,
+          riskLevel: qcr.riskLevel,
+          blockers: JSON.parse(qcr.blockersJson),
+          warnings: JSON.parse(qcr.warningsJson),
+          recommendations: JSON.parse(qcr.recommendationsJson),
+        };
+      }
+    }
+
+    // Parse journey progress
+    const journeyProgress: JourneyProgress | null = application.journeyProgressJson
+      ? JSON.parse(application.journeyProgressJson)
+      : null;
 
     return NextResponse.json({
       data: {
@@ -81,6 +125,16 @@ export async function GET(
         formFieldsTotal: 37,
         applicant,
         trip,
+        extractionMeta,
+        qualityCheckResult,
+        hasFinalPdf,
+        journeyProgress,
+        consulateGuidance: {
+          appointmentBookingUrl: consulate.appointmentBookingUrl,
+          vfsTrackingUrl: consulate.vfsTrackingUrl ?? null,
+          fees: consulate.fees ?? null,
+          knownPractices: consulate.knownPractices ?? [],
+        },
       },
     });
   } catch (err) {

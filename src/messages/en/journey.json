@@ -1,0 +1,79 @@
+{
+  "step": {
+    "uploadDocuments": {
+      "title": "Upload Documents",
+      "description": "Upload your passport, bank statement, and other required documents"
+    },
+    "fillForm": {
+      "title": "Fill Application Form",
+      "description": "Complete the Schengen application form"
+    },
+    "qualityCheck": {
+      "title": "Quality Check & Finalize",
+      "description": "AI review for common refusal triggers, then generate your PDF"
+    },
+    "submitVfs": {
+      "title": "Submit at VFS",
+      "description": "Book your VFS appointment and submit your documents"
+    },
+    "trackDecision": {
+      "title": "Track Decision",
+      "description": "Monitor your application status"
+    }
+  },
+  "status": {
+    "done": "Done",
+    "inProgress": "In progress"
+  },
+  "progress": {
+    "stepOf": "Step {current} of {total} — {label}"
+  },
+  "vfs": {
+    "bookAppointment": {
+      "title": "Book your VFS appointment",
+      "description": "Schedule your visa submission appointment at VFS Global. Apply at least {min}–{max} business days before your travel date.",
+      "button": "Open VFS Booking Portal",
+      "disclaimer": "VisaAgent does not book appointments on your behalf."
+    },
+    "fees": {
+      "title": "Fees",
+      "visaFee": "Visa fee",
+      "serviceCharge": "VFS service charge"
+    },
+    "whatToBring": {
+      "title": "What to bring",
+      "passport": "Original passport",
+      "applicationForm": "Printed application form (from Step 3)",
+      "coverLetter": "Printed cover letter",
+      "supportingDocs": "All supporting documents (originals + copies)",
+      "photos": "2 passport-size photos (35x45mm)",
+      "feePayment": "Fee payment",
+      "appointmentConfirmation": "VFS appointment confirmation"
+    },
+    "biometrics": "First-time Schengen visa applicants will provide fingerprints at the VFS centre.",
+    "tips": "Tips",
+    "markSubmitted": "Mark as submitted",
+    "submitted": "Submitted at VFS"
+  },
+  "track": {
+    "timeline": {
+      "title": "Processing timeline",
+      "processing": "Expected processing",
+      "businessDays": "{min}–{max} business days",
+      "refusalRate": "Estimated refusal rate"
+    },
+    "trackApplication": {
+      "title": "Track your application",
+      "button": "Open VFS Tracking"
+    },
+    "whatNext": {
+      "title": "What happens next",
+      "approvedTitle": "If approved",
+      "approvedDescription": "Collect your passport from the VFS centre or receive it by courier (if you opted for courier delivery).",
+      "refusedTitle": "If refused",
+      "refusedDescription": "You will receive a letter explaining the grounds for refusal. You may reapply with stronger documentation or appeal the decision."
+    },
+    "markReceived": "Mark as received",
+    "received": "Decision received"
+  }
+}

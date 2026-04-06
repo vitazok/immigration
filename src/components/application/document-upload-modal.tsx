@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 
 interface DocumentUploadModalProps {
@@ -22,6 +22,9 @@ const LABELS: Record<string, string> = {
   other: 'Other Document',
 };
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
 export function DocumentUploadModal({
   documentType,
   applicantId,
@@ -31,11 +34,28 @@ export function DocumentUploadModal({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  function validateFile(file: File): string | null {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return `File type ${file.type} is not supported. Use PDF, JPEG, PNG, or WebP.`;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      return 'File must be under 10MB.';
+    }
+    return null;
+  }
 
   async function handleUpload(file: File) {
     if (!applicantId) {
       setError('Please sign in to upload documents.');
+      return;
+    }
+
+    const validationError = validateFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -76,6 +96,31 @@ export function DocumentUploadModal({
     if (file) handleUpload(file);
   }
 
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      const file = e.dataTransfer.files[0];
+      if (file) handleUpload(file);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [applicantId, documentType]
+  );
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-md w-full max-w-md p-6 space-y-4">
@@ -92,16 +137,24 @@ export function DocumentUploadModal({
           <p className="text-sm text-green-600 font-semibold">Uploaded successfully!</p>
         ) : (
           <div
-            className="border-2 border-dashed border-gray-200 rounded-md p-8 text-center cursor-pointer hover:border-gray-400 transition-colors"
+            className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer transition-colors ${
+              isDragging
+                ? 'border-black bg-gray-50'
+                : 'border-gray-200 hover:border-gray-400'
+            }`}
             onClick={() => fileRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
           >
             {uploading ? (
               <Loader2 size={24} className="mx-auto text-gray-400 animate-spin" />
             ) : (
-              <Upload size={24} className="mx-auto text-gray-400" />
+              <Upload size={24} className={`mx-auto ${isDragging ? 'text-black' : 'text-gray-400'}`} />
             )}
             <p className="mt-2 text-sm text-gray-600">
-              {uploading ? 'Uploading...' : 'Click to select a file'}
+              {uploading ? 'Uploading...' : isDragging ? 'Drop file here' : 'Click or drag a file here'}
             </p>
             <p className="text-xs text-gray-400 mt-1">PDF, JPEG, PNG, or WebP — max 10MB</p>
           </div>

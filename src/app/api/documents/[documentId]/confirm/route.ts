@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
+import { syncExtractionToApplicant } from '@/lib/documents/sync-to-applicant';
 import type { DocumentExtraction } from '@/lib/types/documents';
 
 const BodySchema = z.object({
@@ -16,8 +17,10 @@ export async function POST(
 
     const doc = await prisma.documentUpload.findUniqueOrThrow({
       where: { id: params.documentId },
-      select: { extractionResultJson: true },
+      select: { extractionResultJson: true, applicantId: true },
     });
+
+    let syncResult = null;
 
     // Apply user corrections to extraction result
     if (doc.extractionResultJson) {
@@ -45,9 +48,23 @@ export async function POST(
         where: { id: params.documentId },
         data: { extractionResultJson: JSON.stringify(extraction) },
       });
+
+      // Sync corrected data to Applicant record
+      if (doc.applicantId) {
+        syncResult = await syncExtractionToApplicant(
+          doc.applicantId,
+          params.documentId,
+          extraction,
+        );
+      }
     }
 
-    return NextResponse.json({ data: { confirmed: true } });
+    return NextResponse.json({
+      data: {
+        confirmed: true,
+        sync: syncResult,
+      },
+    });
   } catch (err) {
     console.error('[documents/confirm]', err);
     return NextResponse.json(

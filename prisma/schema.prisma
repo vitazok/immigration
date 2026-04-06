@@ -30,6 +30,9 @@ model Application {
   // State
   status         String  @default("draft") // draft | in_progress | ready_for_review | finalized
 
+  // Journey progress for manual steps (VFS submission, tracking)
+  journeyProgressJson String? // JSON: { step4Complete: boolean, step5Complete: boolean }
+
   // Links
   applicantId    String?
   tripId         String?
@@ -98,6 +101,9 @@ model Applicant {
   familyDependents  String?
   returnIntent      String?
 
+  // Extraction provenance: tracks which document populated which field
+  fieldProvenanceJson String? // JSON: Record<string, { documentType, confidence, source, documentId }>
+
   // Relations
   applications   Application[]
   trips         Trip[]
@@ -112,7 +118,7 @@ model Applicant {
 
 model Trip {
   id          String   @id @default(cuid())
-  applicantId String
+  applicantId String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -144,7 +150,7 @@ model Trip {
   // Consulate determination
   targetConsulateId String?
 
-  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicant Applicant? @relation(fields: [applicantId], references: [id], onDelete: Cascade)
 
   @@index([applicantId])
 }

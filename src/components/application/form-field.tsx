@@ -2,6 +2,12 @@
 
 import { HelpCircle } from 'lucide-react';
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  passport: 'passport',
+  bank_statement: 'bank statement',
+  employer_letter: 'employer letter',
+};
+
 interface FormFieldProps {
   fieldKey: string;
   label: string;
@@ -12,6 +18,8 @@ interface FormFieldProps {
   source?: 'extraction' | 'manual' | null;
   placeholder?: string;
   helpText?: string;
+  confidence?: number | null;
+  documentType?: string | null;
 }
 
 export function FormField({
@@ -24,13 +32,24 @@ export function FormField({
   source,
   placeholder,
   helpText,
+  confidence,
+  documentType,
 }: FormFieldProps) {
-  const borderClass =
-    source === 'extraction'
-      ? 'border-l-2 border-l-green-600'
-      : source === 'manual' && value
-        ? 'border-l-2 border-l-yellow-500'
-        : '';
+  // Dynamic border color based on extraction confidence
+  let borderClass = '';
+  if (source === 'extraction' && confidence != null) {
+    if (confidence >= 0.9) {
+      borderClass = 'border-l-2 border-l-green-600';
+    } else if (confidence >= 0.7) {
+      borderClass = 'border-l-2 border-l-yellow-500';
+    } else {
+      borderClass = 'border-l-2 border-l-red-500';
+    }
+  } else if (source === 'extraction') {
+    borderClass = 'border-l-2 border-l-green-600';
+  } else if (source === 'manual' && value) {
+    borderClass = 'border-l-2 border-l-yellow-500';
+  }
 
   const inputBase =
     'w-full px-4 py-3 border border-gray-200 rounded-md text-sm bg-white placeholder-gray-400 outline-none transition-colors focus:border-black';
@@ -74,6 +93,13 @@ export function FormField({
           placeholder={placeholder}
           className={inputBase}
         />
+      )}
+
+      {/* Source attribution for auto-filled fields */}
+      {source === 'extraction' && documentType && (
+        <p className="text-xs text-gray-400">
+          From {DOC_TYPE_LABELS[documentType] ?? documentType}
+        </p>
       )}
     </div>
   );

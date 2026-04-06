@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { FormField } from './form-field';
+import type { ExtractionMeta } from '@/lib/types/application';
 
 interface FormSectionsProps {
   applicant: Record<string, unknown> | null;
@@ -11,6 +12,7 @@ interface FormSectionsProps {
   onFieldChange: (key: string, value: string) => void;
   onSave: () => void;
   saving: boolean;
+  extractionMeta?: Record<string, ExtractionMeta>;
 }
 
 interface FieldDefinition {
@@ -153,8 +155,14 @@ function determineSource(
   currentValue: string,
   applicant: Record<string, unknown> | null,
   trip: Record<string, unknown> | null,
+  extractionMeta?: Record<string, ExtractionMeta>,
 ): 'extraction' | 'manual' | null {
   if (!currentValue) return null;
+  // Check if this field has extraction provenance
+  if (extractionMeta && extractionMeta[key]) {
+    const initialValue = resolveInitialValue(key, applicant, trip);
+    if (initialValue && initialValue === currentValue) return 'extraction';
+  }
   const initialValue = resolveInitialValue(key, applicant, trip);
   if (initialValue && initialValue === currentValue) return 'extraction';
   return 'manual';
@@ -167,6 +175,7 @@ export function FormSections({
   onFieldChange,
   onSave,
   saving,
+  extractionMeta,
 }: FormSectionsProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -213,20 +222,28 @@ export function FormSections({
 
             {!isCollapsed && (
               <div className="border-t border-gray-200 px-4 py-4 space-y-4">
-                {section.fields.map((field) => (
-                  <FormField
-                    key={field.key}
-                    fieldKey={field.key}
-                    label={field.label}
-                    value={getFieldValue(field.key)}
-                    onChange={(val) => onFieldChange(field.key, val)}
-                    type={field.type}
-                    options={field.options}
-                    source={determineSource(field.key, getFieldValue(field.key), applicant, trip)}
-                    placeholder={field.placeholder}
-                    helpText={field.helpText}
-                  />
-                ))}
+                {section.fields.map((field) => {
+                  const meta = extractionMeta?.[field.key] ?? null;
+                  const currentValue = getFieldValue(field.key);
+                  const source = determineSource(field.key, currentValue, applicant, trip, extractionMeta);
+
+                  return (
+                    <FormField
+                      key={field.key}
+                      fieldKey={field.key}
+                      label={field.label}
+                      value={currentValue}
+                      onChange={(val) => onFieldChange(field.key, val)}
+                      type={field.type}
+                      options={field.options}
+                      source={source}
+                      placeholder={field.placeholder}
+                      helpText={field.helpText}
+                      confidence={meta?.confidence ?? null}
+                      documentType={meta?.documentType ?? null}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

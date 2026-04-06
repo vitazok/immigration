@@ -32,7 +32,13 @@ export interface OCRResult {
   }>;
 }
 
+const isVisionConfigured = !env.GOOGLE_CLOUD_VISION_API_KEY.includes('PLACEHOLDER');
+
 export async function extractTextFromImage(imageBase64: string, mimeType: string): Promise<OCRResult> {
+  if (!isVisionConfigured) {
+    return devFallbackOCR(imageBase64, mimeType);
+  }
+
   const url = `https://vision.googleapis.com/v1/images:annotate?key=${env.GOOGLE_CLOUD_VISION_API_KEY}`;
 
   const body = {
@@ -97,4 +103,38 @@ export async function extractTextFromImage(imageBase64: string, mimeType: string
   const confidence = fullText.length > 50 ? 0.9 : fullText.length > 10 ? 0.7 : 0.3;
 
   return { fullText, confidence, words };
+}
+
+/**
+ * Dev-only fallback when Google Vision API is not configured.
+ * Returns a synthetic MRZ text for passport uploads so the extraction pipeline
+ * can be tested end-to-end without a real OCR service.
+ */
+function devFallbackOCR(_imageBase64: string, _mimeType: string): OCRResult {
+  console.warn('[ocr] Google Vision not configured — using dev fallback with sample MRZ');
+
+  // Sample passport text with MRZ lines (fictional data from test fixtures)
+  const samplePassportText = [
+    'REPUBLIC OF INDIA',
+    'PASSPORT',
+    '',
+    'Surname: KUMAR',
+    'Given Names: RAHUL',
+    'Nationality: Indian',
+    'Date of Birth: 01 JAN 1990',
+    'Sex: M',
+    'Place of Birth: NEW DELHI',
+    'Date of Issue: 01 JAN 2025',
+    'Date of Expiry: 31 DEC 2030',
+    'Passport No: N1234567',
+    '',
+    'P<INDKUMAR<<RAHUL<<<<<<<<<<<<<<<<<<<<<<<<<<<',
+    'N1234567<7IND9001011M3012316<<<<<<<<<<<<<<04',
+  ].join('\n');
+
+  return {
+    fullText: samplePassportText,
+    confidence: 0.95,
+    words: [],
+  };
 }

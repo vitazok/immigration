@@ -29,6 +29,13 @@ export interface ConsulateRequirement {
   lastVerifiedDate: string; // YYYY-MM-DD
   refusalRateEstimate: number; // 0.0 to 1.0
 
+  fees?: {
+    visaFee: MoneyAmount;
+    vfsServiceCharge: MoneyAmount;
+    note: LocalizedString;
+  };
+  vfsTrackingUrl?: string;
+
   formFieldOverrides: Record<string, string>;
 
   tooltips: Record<string, LocalizedString>;
